@@ -138,3 +138,13 @@ export const refresh = async (req, res) => {
     });
   }
 };
+
+export const logout = (req, res) => {
+  res.clearCookie(REFRESH_COOKIE_NAME, { path: '/auth/refresh' });
+  return res.status(500).json({
+    success: false,
+    data: {
+      message: 'Успешно излизане'
+    }
+  });
+};
