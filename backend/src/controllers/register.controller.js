@@ -22,9 +22,12 @@ export const createUser = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const username = email.split("@")[0] + "_" + Date.now();
+
     await User.create({
       email,
       password: hashedPassword,
+      username,
     });
 
     return res.status(201).json({
