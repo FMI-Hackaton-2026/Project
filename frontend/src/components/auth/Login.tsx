@@ -1,16 +1,56 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
+import { API_BASE_URL } from '../../api/config';
+import { useAuthStore } from '../../store/useAuthStore';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const setAuth = useAuthStore((s) => s.setAuth);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, we'd validate here
-    navigate('/platform/chat');
+    setError('');
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || !result.success) {
+        setError(result?.data?.message || 'Login failed.');
+        return;
+      }
+
+      const { accessToken, refreshToken, user } = result.data;
+      if (accessToken && refreshToken && user) {
+        setAuth(
+          {
+            id: user.id,
+            email: user.email,
+            name: user.name ?? user.username,
+          },
+          accessToken,
+          refreshToken
+        );
+      }
+
+      navigate('/platform/chat');
+    } catch {
+      setError('Server error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -51,11 +91,18 @@ export default function Login() {
             </div>
           </div>
 
+          {error && (
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+              {error}
+            </div>
+          )}
+
           <button
             type="submit"
-            className="w-full py-4 rounded-xl bg-accent-teal text-navy-900 font-bold text-lg hover:bg-teal-400 transition-colors shadow-lg"
+            disabled={loading}
+            className="w-full py-4 rounded-xl bg-accent-teal text-navy-900 font-bold text-lg hover:bg-teal-400 transition-colors shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Sign In
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 
