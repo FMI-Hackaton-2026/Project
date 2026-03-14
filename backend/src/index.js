@@ -3,6 +3,8 @@ import cors from 'cors';
 import connectDB from './config/mongoDB.js';
 import 'dotenv/config';
 
+import mainRoute from './routes/index.js';
+
 const app = express()
 const PORT = process.env.PORT || 3000
 
@@ -17,8 +19,10 @@ app.use(
   })
 );
 
-const start = async() => {
-  try{
+app.use("/api", mainRoute);
+
+const start = async () => {
+  try {
     await connectDB();
 
     const server = app.listen(PORT, () => {
@@ -28,17 +32,16 @@ const start = async() => {
     const shutdown = async () => {
       console.log('Shutting down...');
       server.close(() => console.log('HTTP server closed'));
-      await shutdownRedis();
       process.exit(0);
     };
 
     process.on('SIGINT', shutdown);
     process.on('SIGTERM', shutdown);
   }
-  catch(err){
+  catch (err) {
     console.error('Startup error:', err);
     process.exit(1);
   }
-}  
+}
 
 start();
