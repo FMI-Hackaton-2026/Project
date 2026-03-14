@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
+import { API_BASE_URL } from '../../api/config';
+import { useAuthStore } from '../../store/useAuthStore';
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -9,7 +11,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_BACKEND_URL;
+  const setAuth = useAuthStore((s) => s.setAuth);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -17,11 +19,9 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const registerRes = await fetch(`${API_URL}/register`, {
+      const registerRes = await fetch(`${API_BASE_URL}/register`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
@@ -32,11 +32,9 @@ export default function Register() {
         return;
       }
 
-      const loginRes = await fetch(`${API_URL}/auth/login`, {
+      const loginRes = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
@@ -48,10 +46,18 @@ export default function Register() {
         return;
       }
 
-      const accessToken = loginResult?.data?.accessToken;
+      const { accessToken, refreshToken, user } = loginResult.data;
 
-      if (accessToken) {
-        localStorage.setItem('accessToken', accessToken);
+      if (accessToken && refreshToken && user) {
+        setAuth(
+          {
+            id: user.id,
+            email: user.email,
+            name: user.name ?? user.username,
+          },
+          accessToken,
+          refreshToken
+        );
       }
 
       navigate('/platform/onboarding');

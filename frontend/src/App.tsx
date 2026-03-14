@@ -14,6 +14,9 @@ import { BottomNav } from './components/navigation/BottomNav';
 import { SurgeOverride } from './components/crisis/SurgeOverride';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { GuestRoute } from './components/auth/GuestRoute';
+import { LogoutButton } from './components/auth/LogoutButton';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -28,60 +31,70 @@ function AnimatedRoutes() {
         <motion.div key={location.pathname} className="absolute inset-0">
           <Routes location={location}>
             <Route path="/login" element={
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0"
-              >
-                <Login />
-              </motion.div>
+              <GuestRoute>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0"
+                >
+                  <Login />
+                </motion.div>
+              </GuestRoute>
             } />
             <Route path="/register" element={
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0"
-              >
-                <Register />
-              </motion.div>
+              <GuestRoute redirectTo="/platform/onboarding">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0"
+                >
+                  <Register />
+                </motion.div>
+              </GuestRoute>
             } />
             
             <Route path="/platform/onboarding" element={
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute inset-0 z-10"
-              >
-                <Onboarding />
-              </motion.div>
+              <ProtectedRoute>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  className="absolute inset-0 z-10"
+                >
+                  <Onboarding />
+                </motion.div>
+              </ProtectedRoute>
             } />
 
             <Route path="/platform/chat" element={
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute inset-0 z-10"
-              >
-                <Chat />
-              </motion.div>
+              <ProtectedRoute>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  className="absolute inset-0 z-10"
+                >
+                  <Chat />
+                </motion.div>
+              </ProtectedRoute>
             } />
 
             <Route path="/platform/statistics" element={
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute inset-0 z-10"
-              >
-                <Statistics />
-              </motion.div>
+              <ProtectedRoute>
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  className="absolute inset-0 z-10"
+                >
+                  <Statistics />
+                </motion.div>
+              </ProtectedRoute>
             } />
 
             <Route path="/platform" element={<Navigate to="/platform/chat" replace />} />
@@ -90,6 +103,11 @@ function AnimatedRoutes() {
         </motion.div>
       </AnimatePresence>
 
+      {isPlatform && (
+        <div className="fixed top-4 right-4 z-50">
+          <LogoutButton />
+        </div>
+      )}
       {isPlatform && !isOnboarding && <BottomNav />}
       
       <SurgeOverride />
