@@ -3,20 +3,20 @@ import bcrypt from "bcrypt";
 
 export const createUser = async (req, res) => {
   try {
-    const { email, username, password, name } = req.body;
+    const { email, password } = req.body;
 
-    if (!email || !username || !password || !name) {
+    if (!email || !password) {
       return res.status(400).json({
         success: false,
         data: { message: "Всички полета са задължителни." },
       });
     }
 
-    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(409).json({
         success: false,
-        data: { message: "Имейла или потребителското име са задължителни" },
+        data: { message: "Вече съществува регистрация на този имейл." },
       });
     }
 
@@ -24,9 +24,7 @@ export const createUser = async (req, res) => {
 
     await User.create({
       email,
-      username,
       password: hashedPassword,
-      name,
     });
 
     return res.status(201).json({
@@ -37,7 +35,7 @@ export const createUser = async (req, res) => {
     console.error("Register error:", err);
     return res.status(500).json({
       success: false,
-      data: { message: "Възникна неочаквана грешка." },
+      data: { message: err },
     });
   }
 };

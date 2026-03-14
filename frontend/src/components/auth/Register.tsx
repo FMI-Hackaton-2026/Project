@@ -3,20 +3,68 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 
 export default function Register() {
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate();
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_BACKEND_URL;
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // In a real app, we'd validate here
-    navigate('/platform/onboarding');
+    setError('');
+    setLoading(true);
+
+    try {
+      const registerRes = await fetch(`${API_URL}/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const registerResult = await registerRes.json();
+
+      if (!registerRes.ok || !registerResult.success) {
+        setError(registerResult?.data?.message || 'Registration failed.');
+        return;
+      }
+
+      const loginRes = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      });
+
+      const loginResult = await loginRes.json();
+
+      if (!loginRes.ok || !loginResult.success) {
+        setError(loginResult?.data?.message || 'Login after registration failed.');
+        return;
+      }
+
+      const accessToken = loginResult?.data?.accessToken;
+
+      if (accessToken) {
+        localStorage.setItem('accessToken', accessToken);
+      }
+
+      navigate('/platform/onboarding');
+    } catch (err) {
+      setError('Server error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-bg-primary">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md space-y-8"
@@ -29,18 +77,9 @@ export default function Register() {
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1">Full Name</label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-bg-secondary border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-accent-teal/50 transition-all"
-                placeholder="John Doe"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1">Email</label>
+              <label className="block text-sm font-medium text-text-secondary mb-1">
+                Email
+              </label>
               <input
                 type="email"
                 required
@@ -50,8 +89,11 @@ export default function Register() {
                 placeholder="you@example.com"
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1">Password</label>
+              <label className="block text-sm font-medium text-text-secondary mb-1">
+                Password
+              </label>
               <input
                 type="password"
                 required
@@ -63,11 +105,18 @@ export default function Register() {
             </div>
           </div>
 
+          {error && (
+            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+              {error}
+            </div>
+          )}
+
           <button
             type="submit"
-            className="w-full py-4 rounded-xl bg-accent-teal text-navy-900 font-bold text-lg hover:bg-teal-400 transition-colors shadow-lg"
+            disabled={loading}
+            className="w-full py-4 rounded-xl bg-accent-teal text-navy-900 font-bold text-lg hover:bg-teal-400 transition-colors shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Create Account
+            {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
 
