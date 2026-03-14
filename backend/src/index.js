@@ -4,6 +4,7 @@ import connectDB from './config/mongoDB.js';
 import 'dotenv/config';
 import cookieParser from 'cookie-parser';
 import mainRoute from './routes/index.js';
+import { initSocket } from './services/socket.js';
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -28,6 +29,8 @@ const start = async () => {
     const server = app.listen(PORT, () => {
       console.log(`Server started on port ${PORT}`);
     });
+
+    initSocket(server);
 
     const shutdown = async () => {
       console.log('Shutting down...');
