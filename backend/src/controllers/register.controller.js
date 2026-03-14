@@ -8,7 +8,7 @@ export const createUser = async (req, res) => {
     if (!email || !username || !password || !name) {
       return res.status(400).json({
         success: false,
-        data: { message: "All fields are required." },
+        data: { message: "Всички полета са задължителни." },
       });
     }
 
@@ -16,7 +16,7 @@ export const createUser = async (req, res) => {
     if (existingUser) {
       return res.status(409).json({
         success: false,
-        data: { message: "Email or username already in use." },
+        data: { message: "Имейла или потребителското име са задължителни" },
       });
     }
 
@@ -31,13 +31,13 @@ export const createUser = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      data: { message: "User registered successfully." },
+      data: { message: "Регистрирахте се успешно." },
     });
   } catch (err) {
     console.error("Register error:", err);
     return res.status(500).json({
       success: false,
-      data: { message: "Internal server error." },
+      data: { message: "Възникна неочаквана грешка." },
     });
   }
 };
