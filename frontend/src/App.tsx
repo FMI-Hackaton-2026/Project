@@ -7,6 +7,11 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { useAppStore } from './store/useAppStore';
+import { Onboarding } from './components/onboarding/Onboarding';
+import Chat from './components/chat/Chat';
+import Statistics from './components/statistics/Statistics';
+import { BottomNav } from './components/navigation/BottomNav';
+import { SurgeOverride } from './components/crisis/SurgeOverride';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 
@@ -42,10 +47,52 @@ function AnimatedRoutes() {
                 <Register />
               </motion.div>
             } />
+            
+            <Route path="/platform/onboarding" element={
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute inset-0 z-10"
+              >
+                <Onboarding />
+              </motion.div>
+            } />
+
+            <Route path="/platform/chat" element={
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute inset-0 z-10"
+              >
+                <Chat />
+              </motion.div>
+            } />
+
+            <Route path="/platform/statistics" element={
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute inset-0 z-10"
+              >
+                <Statistics />
+              </motion.div>
+            } />
+
+            <Route path="/platform" element={<Navigate to="/platform/chat" replace />} />
             <Route path="/" element={<Navigate to="/login" replace />} />
           </Routes>
         </motion.div>
       </AnimatePresence>
+
+      {isPlatform && !isOnboarding && <BottomNav />}
+      
+      <SurgeOverride />
     </div>
   );
 }
