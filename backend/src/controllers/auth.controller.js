@@ -75,10 +75,76 @@ export const login = async (req, res) => {
 export const me = (req, res) => {
   const user = req.user;
   return res.json({
-    user: {
-      id: user._id,
-      email: user.email,
-      username: user.username,
+    success: true,
+    data: {
+      user: {
+        id: user._id,
+        email: user.email,
+        username: user.username,
+      }
     },
+  });
+};
+
+export const refresh = async (req, res) => {
+  try {
+    const refreshToken = req.cookies?.[REFRESH_COOKIE_NAME];
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        data: {
+          message: 'Липсва Refresh Token'
+        }
+      });
+    }
+
+    const decoded = verifyRefreshToken(refreshToken);
+    const user = await User.findById(decoded.sub);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        data: {
+          message: 'Потребителя не съществува'
+        }
+      });
+    }
+
+    const newAccessToken = signAccessToken(user);
+
+    const newRefreshToken = signRefreshToken(user);
+    res.cookie(REFRESH_COOKIE_NAME, newRefreshToken, {
+      ...cookieOptions,
+      maxAge: COOKIE_MAX_AGE,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        accessToken: newAccessToken,
+        user: {
+          id: user._id,
+          email: user.email,
+          username: user.username,
+        }
+      }
+    });
+  } catch (err) {
+    console.error('Refresh error', err);
+    return res.status(401).json({
+      success: false,
+      data: {
+        message: 'Невалиден Refresh Token'
+      }
+    });
+  }
+};
+
+export const logout = (req, res) => {
+  res.clearCookie(REFRESH_COOKIE_NAME, { path: '/auth/refresh' });
+  return res.status(500).json({
+    success: false,
+    data: {
+      message: 'Успешно излизане'
+    }
   });
 };
