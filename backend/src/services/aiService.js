@@ -7,6 +7,7 @@ const openai = new OpenAI({
 });
 
 export const streamAIResponse = async (messages, onChunk, onComplete) => {
+  let fullContent = '';
   try {
     const stream = await openai.chat.completions.create({
       model: 'gpt-4o-mini', // or gpt-4o depending on budget/speed needs
@@ -15,19 +16,19 @@ export const streamAIResponse = async (messages, onChunk, onComplete) => {
       temperature: 0.7,
     });
 
-    let fullContent = '';
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content || '';
       fullContent += content;
       onChunk(content);
     }
-    
+
     onComplete(fullContent);
     return fullContent;
   } catch (error) {
     console.error('Error in OpenAI stream:', error);
-    onChunk('\n[Грешка при свързване с AI]');
-    onComplete(fullContent);
+    const fallback = '[Грешка при свързване с AI. Проверете квотата и настройките.]';
+    onChunk(fallback);
+    onComplete(fullContent || fallback);
     throw error;
   }
 };

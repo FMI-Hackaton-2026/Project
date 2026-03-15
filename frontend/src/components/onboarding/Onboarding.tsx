@@ -1,55 +1,192 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../../store/useAppStore';
+import { useSocketStore } from '../../store/useSocketStore';
+import { getSocket } from '../../lib/socket';
+import { cn } from '../../lib/utils';
 
 type OnboardingStep = 'chat' | 'transition';
 
+interface ChatMessage {
+  id: string;
+  sender: 'ai' | 'user';
+  text: string;
+}
+
+const INITIAL_AI_MESSAGE: ChatMessage = {
+  id: 'welcome',
+  sender: 'ai',
+  text: 'Здравейте. Аз съм Вашият треньор. Как да ви наричам?',
+};
+
+const RESPONSE_TIMEOUT_MS = 60000;
+/** Minimum time (ms) to show the last message + welcome before transitioning to /platform/chat */
+const LAST_MESSAGE_READ_MS = 5000;
+
 export function Onboarding() {
-  const { updateProfile, addMessage } = useAppStore();
+  const { addMessage } = useAppStore();
+  const socketConnected = useSocketStore((s) => s.connected);
   const navigate = useNavigate();
   const [step, setStep] = useState<OnboardingStep>('chat');
-  const [chatPhase, setChatPhase] = useState(1);
+  const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_AI_MESSAGE]);
+  const [streamingText, setStreamingText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  const [socketError, setSocketError] = useState<string | null>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const streamingRef = useRef(streamingText);
+  const lastAiMessageRef = useRef<string | null>(null);
+  const responseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasFinishedOnboardingRef = useRef(false);
+  const transitionDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleChatSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputValue.trim()) return;
+  streamingRef.current = streamingText;
 
-    if (chatPhase === 1) {
-      updateProfile({ name: inputValue });
-      setInputValue('');
-      setChatPhase(2);
-    } else if (chatPhase === 2) {
-      updateProfile({ hobbies: [inputValue] });
-      setInputValue('');
-      setChatPhase(3);
-    } else if (chatPhase === 3) {
-      updateProfile({ financialGoals: [inputValue], isProfileComplete: true });
-      setInputValue('');
-      setStep('transition');
-      
-      // Add initial message to stream
-      setTimeout(() => {
-        addMessage({
-          sender: 'ai',
-          text: "Добре дошли във вашето пространство. Тук съм, когато ви трябва разговор, издухване или префокусиране."
-        });
-      }, 3000);
+  const clearResponseTimeout = () => {
+    if (responseTimeoutRef.current) {
+      clearTimeout(responseTimeoutRef.current);
+      responseTimeoutRef.current = null;
     }
   };
 
   useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, streamingText, isTyping]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !socketConnected) {
+      if (!socket) setSocketError('Изчакване на свързване...');
+      else setSocketError(null);
+      return;
+    }
+    setSocketError(null);
+
+    const onChunk = (payload: { text?: string }) => {
+      if (payload.text) setStreamingText((prev) => prev + payload.text);
+    };
+
+    const onSendMessage = (payload: { message?: string }) => {
+      clearResponseTimeout();
+      if (payload.message) {
+        lastAiMessageRef.current = payload.message;
+        setMessages((prev) => [
+          ...prev,
+          { id: crypto.randomUUID(), sender: 'ai', text: payload.message! },
+        ]);
+        setStreamingText('');
+      }
+      setIsTyping(false);
+    };
+
+    const finishOnboarding = () => {
+      if (hasFinishedOnboardingRef.current) return;
+      hasFinishedOnboardingRef.current = true;
+      const finalText = streamingRef.current || lastAiMessageRef.current;
+      if (finalText) addMessage({ sender: 'ai', text: finalText });
+      const welcomeText = "Добре дошли във вашето пространство. Тук съм, когато ви трябва разговор, издухване или префокусиране.";
+      addMessage({ sender: 'ai', text: welcomeText });
+      lastAiMessageRef.current = null;
+      // Show welcome message in chat
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), sender: 'ai', text: welcomeText },
+      ]);
+      // Stay on chat for at least 5 seconds so the user can read the last message
+      transitionDelayRef.current = setTimeout(() => {
+        transitionDelayRef.current = null;
+        setStep('transition');
+      }, LAST_MESSAGE_READ_MS);
+    };
+
+    const onReplyEnd = (payload: { onboarding_complete?: boolean }) => {
+      clearResponseTimeout();
+      const text = streamingRef.current;
+      if (text) {
+        setMessages((prev) => [
+          ...prev,
+          { id: crypto.randomUUID(), sender: 'ai', text },
+        ]);
+        setStreamingText('');
+      }
+      setIsTyping(false);
+
+      // Only leave onboarding when backend explicitly signals end (e.g. after MAX_TURNS)
+      if (payload.onboarding_complete === true) {
+        finishOnboarding();
+      }
+    };
+
+    const onEndMessage = () => {
+      clearResponseTimeout();
+      setIsTyping(false);
+      finishOnboarding();
+    };
+
+    const onError = (payload: { event?: string; message?: string }) => {
+      clearResponseTimeout();
+      setSocketError(payload?.message || 'Грешка при изпращане.');
+      setIsTyping(false);
+      setStreamingText('');
+    };
+
+    socket.on('AI_REPLY_CHUNK', onChunk);
+    socket.on('SEND_MESSAGE', onSendMessage);
+    socket.on('AI_REPLY_END', onReplyEnd);
+    socket.on('END_MESSAGE', onEndMessage);
+    socket.on('error', onError);
+
+    return () => {
+      clearResponseTimeout();
+      if (transitionDelayRef.current) {
+        clearTimeout(transitionDelayRef.current);
+        transitionDelayRef.current = null;
+      }
+      socket.off('AI_REPLY_CHUNK', onChunk);
+      socket.off('SEND_MESSAGE', onSendMessage);
+      socket.off('AI_REPLY_END', onReplyEnd);
+      socket.off('END_MESSAGE', onEndMessage);
+      socket.off('error', onError);
+    };
+  }, [addMessage, socketConnected]);
+
+  const handleChatSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const text = inputValue.trim();
+    if (!text) return;
+
+    const socket = getSocket();
+    if (!socket) return;
+
+    setMessages((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), sender: 'user', text },
+    ]);
+    setInputValue('');
+    setStreamingText('');
+    setSocketError(null);
+    setIsTyping(true);
+
+    clearResponseTimeout();
+    responseTimeoutRef.current = setTimeout(() => {
+      responseTimeoutRef.current = null;
+      setIsTyping(false);
+      setSocketError('Няма отговор от сървъра. Опитайте отново.');
+    }, RESPONSE_TIMEOUT_MS);
+
+    socket.emit('SEND_MESSAGE', { message: text, sessionId: 'onboarding' });
+  };
+
+  useEffect(() => {
     if (step === 'transition') {
-      const timer = setTimeout(() => {
-        navigate('/platform/chat');
-      }, 2500); // Exactly 2.5 seconds cinematic transition
+      const timer = setTimeout(() => navigate('/platform/chat'), 2500);
       return () => clearTimeout(timer);
     }
   }, [step, navigate]);
 
   return (
-    <div className="fixed inset-0 bg-bg-primary flex flex-col justify-center items-center overflow-hidden">
+    <div className="fixed inset-0 bg-bg-primary flex flex-col overflow-hidden">
       <AnimatePresence mode="wait">
         {step === 'chat' && (
           <motion.div
@@ -58,59 +195,94 @@ export function Onboarding() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.6 }}
-            className="w-full max-w-md mx-auto h-full flex flex-col px-6 py-12"
+            className="w-full max-w-md mx-auto h-full flex flex-col px-4 py-6"
           >
-            <div className="flex-1 flex flex-col justify-center space-y-8">
-              <AnimatePresence>
-                {chatPhase >= 1 && (
+            <div className="flex-1 overflow-y-auto space-y-4 py-4">
+              <AnimatePresence initial={false}>
+                {messages.map((msg) => (
                   <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="text-2xl font-light text-text-primary leading-relaxed"
+                    key={msg.id}
+                    initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                    className={cn(
+                      'flex flex-col max-w-[85%]',
+                      msg.sender === 'user'
+                        ? 'ml-auto items-end'
+                        : 'mr-auto items-start'
+                    )}
                   >
-                    Здравейте. Аз съм Вашият треньор. Как да ви наричам?
+                    <div
+                      className={cn(
+                        'px-4 py-3 rounded-2xl text-[15px] leading-relaxed',
+                        msg.sender === 'user'
+                          ? 'bg-slate-700 text-text-primary rounded-br-sm'
+                          : 'bg-bg-secondary text-text-primary rounded-bl-sm border border-white/5'
+                      )}
+                    >
+                      {msg.text}
+                    </div>
                   </motion.div>
-                )}
-                {chatPhase >= 2 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="text-2xl font-light text-text-primary leading-relaxed"
-                  >
-                    Приятно ми е. Когато сте в добра форма, какво обичате да правите?
-                  </motion.div>
-                )}
-                {chatPhase >= 3 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="text-2xl font-light text-text-primary leading-relaxed"
-                  >
-                    И каква е основната ви финансова цел в момента?
-                  </motion.div>
-                )}
+                ))}
               </AnimatePresence>
+
+              {streamingText && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex flex-col max-w-[85%] mr-auto items-start"
+                >
+                  <div className="px-4 py-3 rounded-2xl rounded-bl-sm bg-bg-secondary text-text-primary border border-white/5 text-[15px] leading-relaxed">
+                    {streamingText}
+                    <span className="inline-block w-2 h-4 ml-0.5 bg-accent-teal/80 animate-pulse align-middle" />
+                  </div>
+                </motion.div>
+              )}
+
+              {isTyping && !streamingText && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="flex items-center gap-2 px-4 py-3 bg-bg-secondary rounded-2xl rounded-bl-sm w-fit border border-white/5"
+                >
+                  <div className="flex gap-1">
+                    {[0, 1, 2].map((i) => (
+                      <motion.div
+                        key={i}
+                        animate={{ y: [0, -4, 0] }}
+                        transition={{
+                          duration: 0.6,
+                          repeat: Infinity,
+                          delay: i * 0.15,
+                        }}
+                        className="w-1.5 h-1.5 bg-text-muted rounded-full"
+                      />
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+              <div ref={bottomRef} className="h-4" />
             </div>
 
-            <motion.form
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.4 }}
+            {socketError && (
+              <p className="text-sm text-amber-400/90 px-1 pb-1">{socketError}</p>
+            )}
+
+            <form
               onSubmit={handleChatSubmit}
-              className="mt-auto relative"
+              className="pt-2 flex-shrink-0"
             >
               <input
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Напишете отговора си..."
-                className="w-full bg-transparent border-b-2 border-white/10 py-4 text-xl text-text-primary placeholder:text-text-muted/30 focus:outline-none focus:border-accent-teal transition-colors"
+                disabled={!getSocket() || !socketConnected}
+                className="w-full bg-bg-secondary border border-white/10 rounded-full pl-4 pr-4 py-3.5 text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent-teal/50 disabled:opacity-60 transition-all"
                 autoFocus
               />
-            </motion.form>
+            </form>
           </motion.div>
         )}
 
@@ -121,18 +293,18 @@ export function Onboarding() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.6 }}
-            className="flex flex-col items-center justify-center"
+            className="flex flex-col items-center justify-center flex-1"
           >
             <motion.div
               animate={{
                 scale: [1, 1.2, 1],
                 rotate: [0, 90, 180],
-                borderRadius: ["20%", "50%", "20%"]
+                borderRadius: ['20%', '50%', '20%'],
               }}
               transition={{
                 duration: 2.5,
-                ease: "easeInOut",
-                times: [0, 0.5, 1]
+                ease: 'easeInOut',
+                times: [0, 0.5, 1],
               }}
               className="w-16 h-16 bg-accent-teal/20 border border-accent-teal/40 mb-8"
             />

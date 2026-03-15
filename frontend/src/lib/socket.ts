@@ -1,6 +1,7 @@
 import { io, type Socket } from 'socket.io-client';
 import { SOCKET_URL } from '../api/config';
 import { useAuthStore } from '../store/useAuthStore';
+import { useSocketStore } from '../store/useSocketStore';
 
 let socket: Socket | null = null;
 
@@ -11,6 +12,7 @@ let socket: Socket | null = null;
  */
 export function initSocket(accessToken: string, refreshToken: string | null): Socket {
   disconnectSocket();
+  useSocketStore.getState().setConnected(false);
 
   socket = io(SOCKET_URL, {
     auth: { accessToken, refreshToken: refreshToken ?? undefined },
@@ -19,7 +21,7 @@ export function initSocket(accessToken: string, refreshToken: string | null): So
   });
 
   socket.on('connect', () => {
-    // Optional: track connection for debugging
+    useSocketStore.getState().setConnected(true);
   });
 
   socket.on('REFRESH', (payload: { accessToken: string; refreshToken: string }) => {
@@ -33,10 +35,8 @@ export function initSocket(accessToken: string, refreshToken: string | null): So
     console.warn('Socket connect_error:', err.message);
   });
 
-  socket.on('disconnect', (reason) => {
-    if (reason === 'io server disconnect') {
-      // Server closed the connection (e.g. auth failed)
-    }
+  socket.on('disconnect', () => {
+    useSocketStore.getState().setConnected(false);
   });
 
   socket.on('error', (payload: { event?: string; message?: string }) => {
@@ -55,6 +55,7 @@ export function disconnectSocket(): void {
     socket.disconnect();
     socket = null;
   }
+  useSocketStore.getState().setConnected(false);
 }
 
 /**
