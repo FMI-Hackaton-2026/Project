@@ -87,7 +87,7 @@ export const sendMessageHandler = async (io, socket, payload) => {
     
     // Fallback if not injected in DB yet
     const sysPromptContent = sysPromptDoc ? sysPromptDoc.content : 
-      "You are an empathetic AI addiction counselor. Get to know the user briefly. Ask short, guiding questions to understand their hobbies, financial stress, triggers, and family context gently.";
+      "You are an empathetic AI addiction counselor. Get to know the user briefly. Ask short, guiding questions to understand their hobbies, financial stress, triggers, and family context gently. CRITICAL: You MUST speak entirely in Bulgarian (Български език). Never use English.";
 
     // Fetch last ~6 messages for this session
     const recentMsgs = await Message.find({ userId, sessionId })
