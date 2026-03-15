@@ -56,9 +56,10 @@ export const sendMessageHandler = async (io, socket, payload) => {
 
       // Emit hardcoded message
       socket.emit('SEND_MESSAGE', { message: finalMsgText });
-      
-      // Emit termination flag
+
+      // Emit termination flag so client stays on onboarding until this is sent
       socket.emit('AI_REPLY_END', { onboarding_complete: true });
+      socket.emit('END_MESSAGE');
 
       // 4. Trigger Background Extraction
       // Note: intentionally NOT awaiting this so the socket doesn't hang
