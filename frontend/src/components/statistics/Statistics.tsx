@@ -1,90 +1,202 @@
+import { useEffect, useState, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Shield, Activity, Target, Heart } from 'lucide-react';
+import { Calendar, Activity, TrendingDown } from 'lucide-react';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useAppStore } from '../../store/useAppStore';
+import { getStats, type StatsData } from '../../api/stats';
+
+function is401(e: unknown): e is Error & { status?: number } {
+  return e instanceof Error && 'status' in e && (e as Error & { status?: number }).status === 401;
+}
 
 export default function Statistics() {
-  const { userProfile } = useAppStore();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const getAccessToken = useAuthStore((s) => s.getAccessToken);
+  const getRefreshToken = useAuthStore((s) => s.getRefreshToken);
+  const clearAuth = useAuthStore((s) => s.clearAuth);
+  const lastSurgeSubmittedAt = useAppStore((s) => s.lastSurgeSubmittedAt);
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchStats = useCallback((silent = false) => {
+    const accessToken = getAccessToken();
+    const refreshToken = getRefreshToken();
+    if (!accessToken && !refreshToken) {
+      setLoading(false);
+      return;
+    }
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
+    getStats(accessToken ?? '', refreshToken)
+      .then(setStats)
+      .catch((e) => {
+        if (is401(e)) {
+          clearAuth();
+          navigate('/login', { replace: true });
+          return;
+        }
+        if (!silent) setError(e instanceof Error ? e.message : 'Failed to load');
+      })
+      .finally(() => { if (!silent) setLoading(false); });
+  }, [getAccessToken, getRefreshToken, clearAuth, navigate]);
+
+  useEffect(() => {
+    if (location.pathname !== '/platform/statistics') return;
+    fetchStats();
+  }, [location.pathname, lastSurgeSubmittedAt, fetchStats]);
+
+  useEffect(() => {
+    const onFocus = () => {
+      if (location.pathname === '/platform/statistics') fetchStats(true);
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [location.pathname, fetchStats]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-screen bg-bg-primary pt-safe pb-[90px] overflow-y-auto">
+        <header className="px-6 py-8 border-b border-white/5 bg-bg-primary/80 backdrop-blur-md sticky top-0 z-10">
+          <h1 className="text-2xl font-light text-text-primary tracking-wide">Statistics</h1>
+          <p className="text-text-muted mt-1 text-sm">Your resilience dashboard.</p>
+        </header>
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-text-muted">Loading…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !stats) {
+    return (
+      <div className="flex flex-col h-screen bg-bg-primary pt-safe pb-[90px] overflow-y-auto">
+        <header className="px-6 py-8 border-b border-white/5 bg-bg-primary/80 backdrop-blur-md sticky top-0 z-10">
+          <h1 className="text-2xl font-light text-text-primary tracking-wide">Statistics</h1>
+        </header>
+        <div className="flex-1 flex items-center justify-center px-6">
+          <p className="text-red-400 text-center">{error || 'Could not load stats'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const maxWeekCount = Math.max(1, ...stats.surgeSessionsByWeek.map((w) => w.count));
+  const maxUrge = 10;
 
   return (
     <div className="flex flex-col h-screen bg-bg-primary pt-safe pb-[90px] overflow-y-auto">
       <header className="px-6 py-8 border-b border-white/5 bg-bg-primary/80 backdrop-blur-md sticky top-0 z-10">
         <h1 className="text-2xl font-light text-text-primary tracking-wide">Statistics</h1>
-        <p className="text-text-muted mt-1 text-sm">Your resilience dashboard.</p>
+        <p className="text-text-muted mt-1 text-sm">Your mental health & recovery overview.</p>
       </header>
 
       <div className="px-6 py-8 space-y-8">
-        {/* Resilience Score */}
-        <motion.div 
+        {/* Days free */}
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           className="p-6 rounded-3xl bg-bg-secondary border border-white/5 shadow-lg relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 p-6 opacity-10">
-            <Shield className="w-24 h-24 text-accent-teal" />
+            <Calendar className="w-24 h-24 text-accent-teal" />
           </div>
-          <h2 className="text-sm font-medium text-text-muted uppercase tracking-widest mb-2">Resilience Score</h2>
-          <div className="text-6xl font-light text-text-primary mb-4">
-            {userProfile.resilienceScore || 0}
+          <h2 className="text-sm font-medium text-text-muted uppercase tracking-widest mb-2 flex items-center gap-2">
+            <Calendar className="w-4 h-4" />
+            Days free
+          </h2>
+          <div className="text-5xl font-light text-text-primary">
+            {stats.daysFree}
           </div>
-          <div className="flex items-center gap-4 text-sm text-text-secondary">
-            <div className="flex items-center gap-1.5">
-              <Activity className="w-4 h-4 text-accent-teal" />
-              <span>{userProfile.daysWithoutGambling || 0} Days Clear</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Target className="w-4 h-4 text-accent-blue" />
-              <span>{userProfile.completedExercises || 0} Exercises</span>
-            </div>
-          </div>
+          <p className="text-text-muted text-sm mt-1">
+            {stats.daysFree === 0
+              ? 'Set your last gambling date in settings to track.'
+              : 'Keep going. Every day counts.'}
+          </p>
         </motion.div>
 
-        {/* Profile Data */}
-        <motion.div 
+        {/* Surge completions by week */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
+          className="p-6 rounded-3xl bg-bg-secondary border border-white/5 shadow-lg"
+        >
+          <h2 className="text-sm font-medium text-text-muted uppercase tracking-widest mb-4 flex items-center gap-2">
+            <Activity className="w-4 h-4" />
+            SURGE completions (last 4 weeks)
+          </h2>
+          <div className="flex items-end gap-2 h-32">
+            {stats.surgeSessionsByWeek.map((week, i) => (
+              <div key={week.label} className="flex-1 flex flex-col items-center gap-1">
+                <div
+                  className="w-full bg-slate-700/50 rounded-t-lg overflow-hidden flex flex-col justify-end min-h-[40px]"
+                  title={`${week.count} completion(s)`}
+                >
+                  <motion.div
+                    initial={{ height: 0 }}
+                    animate={{
+                      height: `${(week.count / maxWeekCount) * 100}%`,
+                    }}
+                    transition={{ duration: 0.6, delay: 0.1 + i * 0.05, ease: [0.16, 1, 0.3, 1] }}
+                    className="w-full bg-accent-teal/70 rounded-t"
+                  />
+                </div>
+                <span className="text-xs text-text-muted">{week.label}</span>
+                <span className="text-sm font-medium text-text-primary">{week.count}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-text-muted text-sm mt-3">
+            Total completions: <span className="text-text-primary font-medium">{stats.totalSurges}</span>
+          </p>
+        </motion.div>
+
+        {/* Urge rating trend */}
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-          className="space-y-6"
+          className="p-6 rounded-3xl bg-bg-secondary border border-white/5 shadow-lg"
         >
-          <h3 className="text-lg font-medium text-text-primary">Your Anchors</h3>
-          
-          <div className="grid grid-cols-1 gap-4">
-            <div className="p-5 rounded-2xl bg-slate-800/50 border border-white/5">
-              <div className="flex items-center gap-3 mb-3 text-accent-teal">
-                <Heart className="w-5 h-5" />
-                <h4 className="font-medium">Hobbies & Interests</h4>
+          <h2 className="text-sm font-medium text-text-muted uppercase tracking-widest mb-4 flex items-center gap-2">
+            <TrendingDown className="w-4 h-4" />
+            Urge rating after SURGE (last 14)
+          </h2>
+          {stats.urgeRatings.length === 0 ? (
+            <p className="text-text-muted text-sm">Complete a SURGE to see your urge ratings here.</p>
+          ) : (
+            <>
+              <div className="flex items-end gap-1 h-24">
+                {stats.urgeRatings.slice(-14).map((point, i) => (
+                  <motion.div
+                    key={`${point.date}-${i}`}
+                    initial={{ height: 0 }}
+                    animate={{
+                      height: `${((point.rating ?? 0) / maxUrge) * 100}%`,
+                    }}
+                    transition={{ duration: 0.4, delay: 0.15 + i * 0.03, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex-1 min-w-0 bg-accent-teal/50 rounded-t"
+                    title={`${point.date}: ${point.rating}/10`}
+                  />
+                ))}
               </div>
-              <div className="flex flex-wrap gap-2">
-                {userProfile.hobbies && userProfile.hobbies.length > 0 ? (
-                  userProfile.hobbies.map((hobby, i) => (
-                    <span key={i} className="px-3 py-1.5 rounded-lg bg-bg-secondary text-sm text-text-secondary border border-white/5">
-                      {hobby}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-text-muted text-sm">None recorded yet.</span>
-                )}
-              </div>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-slate-800/50 border border-white/5">
-              <div className="flex items-center gap-3 mb-3 text-accent-blue">
-                <Target className="w-5 h-5" />
-                <h4 className="font-medium">Financial Goals</h4>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {userProfile.financialGoals && userProfile.financialGoals.length > 0 ? (
-                  userProfile.financialGoals.map((goal, i) => (
-                    <span key={i} className="px-3 py-1.5 rounded-lg bg-bg-secondary text-sm text-text-secondary border border-white/5">
-                      {goal}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-text-muted text-sm">None recorded yet.</span>
-                )}
-              </div>
-            </div>
-          </div>
+              <p className="text-text-muted text-sm mt-3">
+                Average rating after SURGE:{' '}
+                <span className="text-text-primary font-medium">
+                  {stats.averageUrgeRating != null
+                    ? stats.averageUrgeRating.toFixed(1)
+                    : '—'}
+                </span>
+                /10
+              </p>
+            </>
+          )}
         </motion.div>
       </div>
     </div>
