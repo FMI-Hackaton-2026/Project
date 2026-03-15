@@ -7,6 +7,8 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { useAppStore } from './store/useAppStore';
+import { useAuthStore } from './store/useAuthStore';
+import { initSocket, disconnectSocket } from './lib/socket';
 import { Onboarding } from './components/onboarding/Onboarding';
 import Chat from './components/chat/Chat';
 import Statistics from './components/statistics/Statistics';
@@ -129,6 +131,24 @@ function AnimatedRoutes() {
 }
 
 export default function App() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const getAccessToken = useAuthStore((s) => s.getAccessToken);
+  const getRefreshToken = useAuthStore((s) => s.getRefreshToken);
+
+  // Socket: connect when authenticated, disconnect on logout
+  useEffect(() => {
+    if (!isAuthenticated) {
+      disconnectSocket();
+      return;
+    }
+    const accessToken = getAccessToken();
+    const refreshToken = getRefreshToken();
+    if (accessToken) {
+      initSocket(accessToken, refreshToken);
+    }
+    return () => disconnectSocket();
+  }, [isAuthenticated, getAccessToken, getRefreshToken]);
+
   // Prevent scrolling on the body to maintain app-like feel
   useEffect(() => {
     document.body.style.overflow = 'hidden';
