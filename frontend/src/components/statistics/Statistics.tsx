@@ -40,7 +40,7 @@ export default function Statistics() {
           navigate('/login', { replace: true });
           return;
         }
-        if (!silent) setError(e instanceof Error ? e.message : 'Failed to load');
+        if (!silent) setError(e instanceof Error ? e.message : 'Неуспешно зареждане');
       })
       .finally(() => { if (!silent) setLoading(false); });
   }, [getAccessToken, getRefreshToken, clearAuth, navigate]);
@@ -62,11 +62,11 @@ export default function Statistics() {
     return (
       <div className="flex flex-col h-screen bg-bg-primary pt-safe pb-[90px] overflow-y-auto">
         <header className="px-6 py-8 border-b border-white/5 bg-bg-primary/80 backdrop-blur-md sticky top-0 z-10">
-          <h1 className="text-2xl font-light text-text-primary tracking-wide">Statistics</h1>
-          <p className="text-text-muted mt-1 text-sm">Your resilience dashboard.</p>
+          <h1 className="text-2xl font-light text-text-primary tracking-wide">Статистика</h1>
+          <p className="text-text-muted mt-1 text-sm">Табло за устойчивост.</p>
         </header>
         <div className="flex-1 flex items-center justify-center">
-          <p className="text-text-muted">Loading…</p>
+          <p className="text-text-muted">Зареждане…</p>
         </div>
       </div>
     );
@@ -76,10 +76,10 @@ export default function Statistics() {
     return (
       <div className="flex flex-col h-screen bg-bg-primary pt-safe pb-[90px] overflow-y-auto">
         <header className="px-6 py-8 border-b border-white/5 bg-bg-primary/80 backdrop-blur-md sticky top-0 z-10">
-          <h1 className="text-2xl font-light text-text-primary tracking-wide">Statistics</h1>
+          <h1 className="text-2xl font-light text-text-primary tracking-wide">Статистика</h1>
         </header>
         <div className="flex-1 flex items-center justify-center px-6">
-          <p className="text-red-400 text-center">{error || 'Could not load stats'}</p>
+          <p className="text-red-400 text-center">{error || 'Неуспешно зареждане на статистиката'}</p>
         </div>
       </div>
     );
@@ -91,8 +91,8 @@ export default function Statistics() {
   return (
     <div className="flex flex-col h-screen bg-bg-primary pt-safe pb-[90px] overflow-y-auto">
       <header className="px-6 py-8 border-b border-white/5 bg-bg-primary/80 backdrop-blur-md sticky top-0 z-10">
-        <h1 className="text-2xl font-light text-text-primary tracking-wide">Statistics</h1>
-        <p className="text-text-muted mt-1 text-sm">Your mental health & recovery overview.</p>
+        <h1 className="text-2xl font-light text-text-primary tracking-wide">Статистика</h1>
+        <p className="text-text-muted mt-1 text-sm">Преглед на психичното здраве и възстановяването.</p>
       </header>
 
       <div className="px-6 py-8 space-y-8">
@@ -108,15 +108,15 @@ export default function Statistics() {
           </div>
           <h2 className="text-sm font-medium text-text-muted uppercase tracking-widest mb-2 flex items-center gap-2">
             <Calendar className="w-4 h-4" />
-            Days free
+            Дни без игра
           </h2>
           <div className="text-5xl font-light text-text-primary">
             {stats.daysFree}
           </div>
           <p className="text-text-muted text-sm mt-1">
             {stats.daysFree === 0
-              ? 'Set your last gambling date in settings to track.'
-              : 'Keep going. Every day counts.'}
+              ? 'Задайте дата на последната си игра в настройките за проследяване.'
+              : 'Продължавайте. Всеки ден има значение.'}
           </p>
         </motion.div>
 
@@ -129,14 +129,14 @@ export default function Statistics() {
         >
           <h2 className="text-sm font-medium text-text-muted uppercase tracking-widest mb-4 flex items-center gap-2">
             <Activity className="w-4 h-4" />
-            SURGE completions (last 4 weeks)
+            Завършени помощни сесии (последни 4 седмици)
           </h2>
           <div className="flex items-end gap-2 h-32">
             {stats.surgeSessionsByWeek.map((week, i) => (
               <div key={week.label} className="flex-1 flex flex-col items-center gap-1">
                 <div
                   className="w-full bg-slate-700/50 rounded-t-lg overflow-hidden flex flex-col justify-end min-h-[40px]"
-                  title={`${week.count} completion(s)`}
+                  title={`${week.count} завършени`}
                 >
                   <motion.div
                     initial={{ height: 0 }}
@@ -153,7 +153,7 @@ export default function Statistics() {
             ))}
           </div>
           <p className="text-text-muted text-sm mt-3">
-            Total completions: <span className="text-text-primary font-medium">{stats.totalSurges}</span>
+            Общо завършени: <span className="text-text-primary font-medium">{stats.totalSurges}</span>
           </p>
         </motion.div>
 
@@ -166,10 +166,10 @@ export default function Statistics() {
         >
           <h2 className="text-sm font-medium text-text-muted uppercase tracking-widest mb-4 flex items-center gap-2">
             <TrendingDown className="w-4 h-4" />
-            Urge rating after SURGE (last 14)
+            Интензивност на желанието след Помощ (последни 14)
           </h2>
           {stats.urgeRatings.length === 0 ? (
-            <p className="text-text-muted text-sm">Complete a SURGE to see your urge ratings here.</p>
+            <p className="text-text-muted text-sm">Завършете SURGE, за да виждате оценките тук.</p>
           ) : (
             <>
               <div className="flex items-end gap-1 h-24">
@@ -187,7 +187,7 @@ export default function Statistics() {
                 ))}
               </div>
               <p className="text-text-muted text-sm mt-3">
-                Average rating after SURGE:{' '}
+                Средна оценка след помощ:{' '}
                 <span className="text-text-primary font-medium">
                   {stats.averageUrgeRating != null
                     ? stats.averageUrgeRating.toFixed(1)

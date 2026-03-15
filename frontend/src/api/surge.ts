@@ -23,7 +23,7 @@ export async function submitSurge(
   });
   const data = await res.json();
   if (!res.ok) {
-    const err = new Error(data?.message || data?.data?.message || 'Failed to submit') as Error & { status?: number };
+    const err = new Error(data?.message || data?.data?.message || 'Неуспешно изпращане') as Error & { status?: number };
     err.status = res.status;
     throw err;
   }

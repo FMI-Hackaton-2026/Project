@@ -35,7 +35,7 @@ export const getStats = async (req, res) => {
     const totalSurges = await SurgeSession.countDocuments({ user: userId });
 
     const byWeek = [];
-    const weekLabels = ['This week', '1 wk ago', '2 wk ago', '3 wk ago'];
+    const weekLabels = ['Тази седмица', 'Преди 1 седм.', 'Преди 2 седм.', 'Преди 3 седм.'];
     for (let i = 0; i < 4; i++) {
       const end = new Date();
       end.setDate(end.getDate() - i * 7);

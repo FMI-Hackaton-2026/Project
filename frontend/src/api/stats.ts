@@ -19,7 +19,7 @@ export async function getStats(accessToken: string, refreshToken?: string | null
   });
   const data = await res.json();
   if (!res.ok) {
-    const err = new Error(data?.message || data?.data?.message || 'Failed to load stats') as Error & { status?: number };
+    const err = new Error(data?.message || data?.data?.message || 'Неуспешно зареждане на статистиката') as Error & { status?: number };
     err.status = res.status;
     throw err;
   }

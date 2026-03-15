@@ -55,7 +55,7 @@ export function BreathingCircle({ onComplete }: { onComplete: () => void }) {
         onClick={handleTap}
         className="absolute inset-0 w-full h-full cursor-default focus:outline-none touch-manipulation"
         style={{ WebkitTapHighlightColor: 'transparent' }}
-        aria-label={phase === 'exhale' ? 'Tap when you exhale' : 'Breathing'}
+        aria-label={phase === 'exhale' ? 'Докоснете при издишване' : 'Дишане'}
       >
         <div className="flex flex-col items-center justify-center h-full pointer-events-none">
           <motion.div
@@ -76,12 +76,12 @@ export function BreathingCircle({ onComplete }: { onComplete: () => void }) {
             />
           </motion.div>
           <p className="mt-10 text-lg font-light text-text-muted tracking-wide uppercase">
-            {phase === 'inhale' && 'Breathe in'}
-            {phase === 'hold' && 'Hold'}
-            {phase === 'exhale' && (waitingForTap ? 'Tap when you exhale' : 'Breathe out')}
+            {phase === 'inhale' && 'Вдишвайте'}
+            {phase === 'hold' && 'Задръжте'}
+            {phase === 'exhale' && (waitingForTap ? 'Докоснете при издишване' : 'Издишвайте')}
           </p>
           <p className="mt-2 text-sm text-text-muted/70">
-            Cycle {cycles + 1} of {TARGET_CYCLES}
+            Цикъл {cycles + 1} от {TARGET_CYCLES}
           </p>
         </div>
       </motion.button>

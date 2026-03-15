@@ -23,7 +23,7 @@ export function LogoutButton() {
     <button
       onClick={handleLogout}
       className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
-      aria-label="Log out"
+      aria-label="Изход"
     >
       <LogOut className="w-5 h-5" />
     </button>

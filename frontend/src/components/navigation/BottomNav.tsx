@@ -32,7 +32,7 @@ export function BottomNav() {
             />
           )}
           <span className="relative z-10">
-            Chat
+            Чат
           </span>
         </NavLink>
 
@@ -49,7 +49,7 @@ export function BottomNav() {
             className="absolute inset-0 rounded-full"
           />
           <div className="relative px-5 py-2.5 rounded-full bg-accent-teal text-navy-900 font-bold tracking-widest text-xs uppercase shadow-lg group-hover:bg-teal-400 transition-colors">
-            Surge
+            Помощ
           </div>
         </button>
 
@@ -69,7 +69,7 @@ export function BottomNav() {
             />
           )}
           <span className="relative z-10">
-            Stats
+            Статистика
           </span>
         </NavLink>
       </div>

@@ -28,7 +28,7 @@ export default function Register() {
       const registerResult = await registerRes.json();
 
       if (!registerRes.ok || !registerResult.success) {
-        setError(registerResult?.data?.message || 'Registration failed.');
+        setError(registerResult?.data?.message || 'Грешка при регистрация.');
         return;
       }
 
@@ -42,7 +42,7 @@ export default function Register() {
       const loginResult = await loginRes.json();
 
       if (!loginRes.ok || !loginResult.success) {
-        setError(loginResult?.data?.message || 'Login after registration failed.');
+        setError(loginResult?.data?.message || 'Грешка при влизане след регистрация.');
         return;
       }
 
@@ -62,7 +62,7 @@ export default function Register() {
 
       navigate('/platform/onboarding');
     } catch (err) {
-      setError('Server error. Please try again.');
+      setError('Грешка в сървъра. Опитайте отново.');
     } finally {
       setLoading(false);
     }
@@ -76,15 +76,15 @@ export default function Register() {
         className="w-full max-w-md space-y-8"
       >
         <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-white">Create Account</h1>
-          <p className="mt-2 text-text-secondary">Start your path to recovery today</p>
+          <h1 className="text-4xl font-bold tracking-tight text-white">Създаване на профил</h1>
+          <p className="mt-2 text-text-secondary">Започнете пътя си към възстановяване днес</p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1">
-                Email
+                Имейл
               </label>
               <input
                 type="email"
@@ -98,7 +98,7 @@ export default function Register() {
 
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1">
-                Password
+                Парола
               </label>
               <input
                 type="password"
@@ -122,14 +122,14 @@ export default function Register() {
             disabled={loading}
             className="w-full py-4 rounded-xl bg-accent-teal text-navy-900 font-bold text-lg hover:bg-teal-400 transition-colors shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {loading ? 'Creating Account...' : 'Create Account'}
+            {loading ? 'Създаване...' : 'Създай профил'}
           </button>
         </form>
 
         <p className="text-center text-text-muted">
-          Already have an account?{' '}
+          Вече имате профил?{' '}
           <Link to="/login" className="text-accent-teal hover:underline">
-            Sign In
+            Вход
           </Link>
         </p>
       </motion.div>

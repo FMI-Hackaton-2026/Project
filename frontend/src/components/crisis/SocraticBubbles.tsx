@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 const SOCRATIC_QUESTIONS = [
-  "What specific evidence exists that guarantees this next wager will behave differently than your previous five?",
-  "If we look at a transformed image of your life one year from today, free from chasing losses, what does it look like?",
-  "What would you tell someone you love if they were in this same moment of urge?",
-  "What is one small step you can take right now that your future self will thank you for?",
+  "Какво конкретно доказателство има, че следващият залог ще е различен от предишните ви пет?",
+  "Ако погледнем преображения ви живот след една година, свободен от гонене на загуби — как изглежда?",
+  "Какво бихте казали на близък човек, ако беше в същия момент на желание?",
+  "Каква е една малка стъпка, която можете да направите сега и за която бъдещото ви аз ще ви благодари?",
 ];
 
 const INTERVAL_MS = 45000; // Show next question every ~45 seconds during breathing

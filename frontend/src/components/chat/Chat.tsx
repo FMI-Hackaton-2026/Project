@@ -29,12 +29,12 @@ export default function Chat() {
       useAppStore.getState().setTyping(false);
       addMessage({
         sender: 'ai',
-        text: "I hear you. Let's take a moment to ground ourselves. How are you feeling right now?",
+        text: "Чувам ви. Нека отделим момент да се заземим. Как се чувствате в момента?",
         richCard: {
           type: 'exercise',
-          title: 'Mindful Breathing',
-          description: 'A 2-minute exercise to center your thoughts.',
-          actionText: 'Start Exercise',
+          title: 'Съзнателно дишане',
+          description: '2-минутно упражнение за центриране на мислите.',
+          actionText: 'Започни упражнението',
           thumbnailUrl: 'https://picsum.photos/seed/calm/400/200?blur=2'
         }
       });
@@ -45,7 +45,7 @@ export default function Chat() {
     <div className="flex flex-col h-screen bg-bg-primary pt-safe pb-[90px]">
       {/* Header */}
       <header className="px-6 py-4 border-b border-white/5 bg-bg-primary/80 backdrop-blur-md sticky top-0 z-10">
-        <h1 className="text-lg font-medium text-text-primary tracking-wide">Coach</h1>
+        <h1 className="text-lg font-medium text-text-primary tracking-wide">Треньор</h1>
       </header>
 
       {/* Message Stream */}
@@ -110,7 +110,7 @@ export default function Chat() {
           <input
             type="text"
             name="message"
-            placeholder="Type a message..."
+            placeholder="Напиши съобщение..."
             className="w-full bg-bg-secondary border border-white/10 rounded-full pl-5 pr-12 py-3.5 text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent-teal/50 transition-all"
             autoComplete="off"
           />
