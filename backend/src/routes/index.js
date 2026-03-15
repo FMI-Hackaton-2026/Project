@@ -4,6 +4,7 @@ import registerRoute from './register.js';
 import authRoute from './auth.js';
 import surgeRoute from './surge.js';
 import statsRoute from './stats.js';
+import onboardingRoute from './onboarding.js';
 
 const router = express.Router();
 
@@ -11,5 +12,6 @@ router.use('/register', registerRoute);
 router.use('/auth', authRoute);
 router.use('/surge', surgeRoute);
 router.use('/stats', statsRoute);
+router.use('/onboarding', onboardingRoute);
 
 export default router;
