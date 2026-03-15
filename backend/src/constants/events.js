@@ -1,3 +1,4 @@
+import { getMessageHandler } from '../handlers/getMessage.handler.js';
 import { sendMessageHandler } from '../handlers/sendMessage.handler.js';
 import { initMainChatHandler, sendMainMessageHandler } from '../handlers/mainChat.handler.js';
 
