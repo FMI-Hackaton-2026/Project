@@ -1,0 +1,20 @@
+# Byte-compiled / optimized / DLL files
+/rag_api_sal/__pycache__/
+/rag_api_sal/*.py[cod]
+
+# C extensions
+/rag_api_sal/*.so
+
+# Virtual environment
+/rag_api_sal/venv/
+
+# Environment variables
+/rag_api_sal/.env
+
+# Distribution / packaging
+/rag_api_sal/build/
+/rag_api_sal/dist/
+/rag_api_sal/*.egg-info/
+
+# macOS files
+/rag_api_sal/.DS_Store
