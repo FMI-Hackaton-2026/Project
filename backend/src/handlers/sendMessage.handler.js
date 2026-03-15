@@ -44,19 +44,6 @@ export const sendMessageHandler = async (io, socket, payload) => {
 
     // 3. Termination Logic (CRITICAL)
     if (userMessageCount >= MAX_TURNS) {
-      const finalMsgText = "Thank you for being so open. I have everything I need. Let's get started.";
-      
-      // Save forced assistant reply
-      await Message.create({
-        userId,
-        sessionId,
-        role: 'assistant',
-        content: finalMsgText
-      });
-
-      // Emit hardcoded message
-      socket.emit('SEND_MESSAGE', { message: finalMsgText });
-
       // Emit termination flag so client stays on onboarding until this is sent
       socket.emit('AI_REPLY_END', { onboarding_complete: true });
       socket.emit('END_MESSAGE');
@@ -87,7 +74,7 @@ export const sendMessageHandler = async (io, socket, payload) => {
     
     // Fallback if not injected in DB yet
     const sysPromptContent = sysPromptDoc ? sysPromptDoc.content : 
-      "You are an empathetic AI addiction counselor. Get to know the user briefly. Ask short, guiding questions to understand their hobbies, financial stress, triggers, and family context gently. CRITICAL: You MUST speak entirely in Bulgarian (Български език). Never use English.";
+      "You are an empathetic AI addiction counselor. Get to know the user briefly. Ask short, guiding questions to understand their hobbies, financial stress, triggers, and family context gently. CRITICAL INSTRUCTION: Your response MUST be strictly in Bulgarian language (БЪЛГАРСКИ ЕЗИК). Do NOT use Russian, English, or any other language under any circumstances.";
 
     // Fetch last ~6 messages for this session
     const recentMsgs = await Message.find({ userId, sessionId })
