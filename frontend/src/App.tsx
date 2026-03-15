@@ -66,7 +66,7 @@ function AnimatedRoutes() {
                   transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                   className="absolute inset-0 z-10"
                 >
-                  <Onboarding />
+                  <Chat mode="onboarding" />
                 </motion.div>
               </ProtectedRoute>
             } />
