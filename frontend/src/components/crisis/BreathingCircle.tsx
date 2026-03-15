@@ -1,63 +1,90 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { useAppStore } from '../../store/useAppStore';
+import { useState, useCallback, useEffect } from 'react';
+import { motion } from 'motion/react';
+
+const INHALE_DURATION = 4;
+const HOLD_DURATION = 4;
+const EXHALE_DURATION = 6;
+const TARGET_CYCLES = 10;
+
+type Phase = 'inhale' | 'hold' | 'exhale';
 
 export function BreathingCircle({ onComplete }: { onComplete: () => void }) {
-  const [phase, setPhase] = useState<'inhale' | 'hold' | 'exhale'>('inhale');
+  const [phase, setPhase] = useState<Phase>('inhale');
   const [cycles, setCycles] = useState(0);
-  const targetCycles = 3;
+  const [waitingForTap, setWaitingForTap] = useState(false);
 
   useEffect(() => {
-    if (cycles >= targetCycles) {
+    if (phase === 'exhale' && waitingForTap) return;
+    if (phase === 'inhale') {
+      const t = setTimeout(() => setPhase('hold'), INHALE_DURATION * 1000);
+      return () => clearTimeout(t);
+    }
+    if (phase === 'hold') {
+      const t = setTimeout(() => {
+        setPhase('exhale');
+        setWaitingForTap(true);
+      }, HOLD_DURATION * 1000);
+      return () => clearTimeout(t);
+    }
+  }, [phase, waitingForTap]);
+
+  const handleTap = useCallback(() => {
+    if (phase !== 'exhale' || !waitingForTap) return;
+    setWaitingForTap(false);
+    const nextCycles = cycles + 1;
+    setCycles(nextCycles);
+    if (nextCycles >= TARGET_CYCLES) {
       onComplete();
       return;
     }
+    setPhase('inhale');
+  }, [phase, waitingForTap, cycles, onComplete]);
 
-    let timer: NodeJS.Timeout;
-    if (phase === 'inhale') {
-      timer = setTimeout(() => setPhase('hold'), 4000);
-    } else if (phase === 'hold') {
-      timer = setTimeout(() => setPhase('exhale'), 4000);
-    } else if (phase === 'exhale') {
-      timer = setTimeout(() => {
-        setPhase('inhale');
-        setCycles(c => c + 1);
-      }, 6000);
-    }
-
-    return () => clearTimeout(timer);
-  }, [phase, cycles, onComplete]);
+  const scale = phase === 'inhale' ? 1.4 : phase === 'hold' ? 1.4 : 0.6;
+  const duration =
+    phase === 'inhale'
+      ? INHALE_DURATION
+      : phase === 'hold'
+        ? HOLD_DURATION
+        : EXHALE_DURATION;
 
   return (
-    <div className="flex flex-col items-center justify-center h-full">
-      <motion.div
-        animate={{
-          scale: phase === 'inhale' ? 1.5 : phase === 'hold' ? 1.5 : 1,
-          opacity: phase === 'hold' ? 0.8 : 1,
-        }}
-        transition={{
-          duration: phase === 'inhale' ? 4 : phase === 'hold' ? 4 : 6,
-          ease: "easeInOut"
-        }}
-        className="w-48 h-48 rounded-full bg-accent-teal/20 border-2 border-accent-teal/50 flex items-center justify-center shadow-[0_0_40px_rgba(20,184,166,0.2)]"
+    <>
+      <motion.button
+        type="button"
+        onClick={handleTap}
+        className="absolute inset-0 w-full h-full cursor-default focus:outline-none touch-manipulation"
+        style={{ WebkitTapHighlightColor: 'transparent' }}
+        aria-label={phase === 'exhale' ? 'Tap when you exhale' : 'Breathing'}
       >
-        <motion.div
-          animate={{
-            scale: phase === 'inhale' ? 1.2 : phase === 'hold' ? 1.2 : 0.8,
-          }}
-          transition={{
-            duration: phase === 'inhale' ? 4 : phase === 'hold' ? 4 : 6,
-            ease: "easeInOut"
-          }}
-          className="w-32 h-32 rounded-full bg-accent-teal/40 blur-md"
-        />
-      </motion.div>
-      <div className="mt-12 text-2xl font-light text-text-primary tracking-widest uppercase">
-        {phase === 'inhale' ? 'Breathe In' : phase === 'hold' ? 'Hold' : 'Breathe Out'}
-      </div>
-      <div className="mt-4 text-sm text-text-muted">
-        Cycle {cycles + 1} of {targetCycles}
-      </div>
-    </div>
+        <div className="flex flex-col items-center justify-center h-full pointer-events-none">
+          <motion.div
+            animate={{ scale }}
+            transition={{
+              duration,
+              ease: [0.25, 0.46, 0.45, 0.94],
+            }}
+            className="w-48 h-48 rounded-full border-2 border-accent-teal/50 bg-accent-teal/10 flex items-center justify-center shadow-[0_0_60px_rgba(20,184,166,0.15)]"
+          >
+            <motion.div
+              animate={{ scale: scale * 0.7 }}
+              transition={{
+                duration,
+                ease: [0.25, 0.46, 0.45, 0.94],
+              }}
+              className="w-24 h-24 rounded-full bg-accent-teal/20"
+            />
+          </motion.div>
+          <p className="mt-10 text-lg font-light text-text-muted tracking-wide uppercase">
+            {phase === 'inhale' && 'Breathe in'}
+            {phase === 'hold' && 'Hold'}
+            {phase === 'exhale' && (waitingForTap ? 'Tap when you exhale' : 'Breathe out')}
+          </p>
+          <p className="mt-2 text-sm text-text-muted/70">
+            Cycle {cycles + 1} of {TARGET_CYCLES}
+          </p>
+        </div>
+      </motion.button>
+    </>
   );
 }

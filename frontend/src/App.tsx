@@ -103,12 +103,25 @@ function AnimatedRoutes() {
         </motion.div>
       </AnimatePresence>
 
-      {isPlatform && (
+      {isPlatform && !isSurgeActive && (
         <div className="fixed top-4 right-4 z-50">
           <LogoutButton />
         </div>
       )}
-      {isPlatform && !isOnboarding && <BottomNav />}
+      {isPlatform && !isOnboarding && (
+        <AnimatePresence>
+          {!isSurgeActive && (
+            <motion.div
+              initial={{ y: 0, opacity: 1 }}
+              exit={{ y: 80, opacity: 0 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-[360px]"
+            >
+              <BottomNav />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
       
       <SurgeOverride />
     </div>
