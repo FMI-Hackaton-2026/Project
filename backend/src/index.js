@@ -5,6 +5,7 @@ import 'dotenv/config';
 import cookieParser from 'cookie-parser';
 import mainRoute from './routes/index.js';
 import { initSocket } from './services/socket.js';
+import HasCheckedWorker from './workers/hasChecked.worker.js';
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -33,8 +34,12 @@ const start = async () => {
 
     initSocket(server);
 
+    const hasCheckedWorker = new HasCheckedWorker();
+    await hasCheckedWorker.start();
+
     const shutdown = async () => {
       console.log('Shutting down...');
+      await hasCheckedWorker.stop();
       server.close(() => console.log('HTTP server closed'));
       process.exit(0);
     };

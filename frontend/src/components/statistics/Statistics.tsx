@@ -60,7 +60,7 @@ export default function Statistics() {
 
   if (loading) {
     return (
-      <div className="flex flex-col h-screen bg-bg-primary pt-safe pb-[90px] overflow-y-auto">
+      <div className="flex flex-col h-screen bg-bg-primary pt-safe pt-[calc(env(safe-area-inset-top,20px)+5rem)] pb-8 overflow-y-auto">
         <header className="px-6 py-8 border-b border-white/5 bg-bg-primary/80 backdrop-blur-md sticky top-0 z-10">
           <h1 className="text-2xl font-light text-text-primary tracking-wide">Статистика</h1>
           <p className="text-text-muted mt-1 text-sm">Табло за устойчивост.</p>
@@ -74,7 +74,7 @@ export default function Statistics() {
 
   if (error || !stats) {
     return (
-      <div className="flex flex-col h-screen bg-bg-primary pt-safe pb-[90px] overflow-y-auto">
+      <div className="flex flex-col h-screen bg-bg-primary pt-safe pt-[calc(env(safe-area-inset-top,20px)+5rem)] pb-8 overflow-y-auto">
         <header className="px-6 py-8 border-b border-white/5 bg-bg-primary/80 backdrop-blur-md sticky top-0 z-10">
           <h1 className="text-2xl font-light text-text-primary tracking-wide">Статистика</h1>
         </header>
@@ -89,7 +89,7 @@ export default function Statistics() {
   const maxUrge = 10;
 
   return (
-    <div className="flex flex-col h-screen bg-bg-primary pt-safe pb-[90px] overflow-y-auto">
+    <div className="flex flex-col h-screen bg-bg-primary pt-safe pt-[calc(env(safe-area-inset-top,20px)+5rem)] pb-8 overflow-y-auto">
       <header className="px-6 py-8 border-b border-white/5 bg-bg-primary/80 backdrop-blur-md sticky top-0 z-10">
         <h1 className="text-2xl font-light text-text-primary tracking-wide">Статистика</h1>
         <p className="text-text-muted mt-1 text-sm">Преглед на психичното здраве и възстановяването.</p>

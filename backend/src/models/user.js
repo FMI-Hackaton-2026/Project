@@ -35,6 +35,10 @@ const userSchema = new mongoose.Schema(
     hasLogedForFirstTime: {
       type: Boolean,
       default: false
+    },
+    is_checked_today:{
+      type: Boolean,
+      default: true
     }
   },
   {

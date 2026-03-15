@@ -112,12 +112,7 @@ export default function Chat({ mode = 'main' }: ChatProps) {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-bg-primary pt-safe pb-[90px]">
-      {/* Header */}
-      <header className="px-6 py-4 border-b border-white/5 bg-bg-primary/80 backdrop-blur-md sticky top-0 z-10">
-        <h1 className="text-lg font-medium text-text-primary tracking-wide">Треньор</h1>
-      </header>
-
+    <div className="flex flex-col h-screen bg-bg-primary pt-[calc(env(safe-area-inset-top,20px)+5rem)]">
       {/* Message Stream */}
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
         <AnimatePresence initial={false}>

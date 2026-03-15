@@ -105,22 +105,28 @@ function AnimatedRoutes() {
         </motion.div>
       </AnimatePresence>
 
-      {isPlatform && !isSurgeActive && (
-        <div className="fixed top-4 right-4 z-50">
-          <LogoutButton />
-        </div>
-      )}
       {isPlatform && !isOnboarding && (
         <AnimatePresence>
           {!isSurgeActive && (
-            <motion.div
-              initial={{ y: 0, opacity: 1 }}
-              exit={{ y: 80, opacity: 0 }}
+            <motion.header
+              initial={{ y: -80, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -80, opacity: 0 }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-[360px]"
+              className="fixed top-0 left-0 right-0 z-40 pt-safe pt-4 pb-3 px-4"
             >
-              <BottomNav />
-            </motion.div>
+              <div className="flex items-center justify-between max-w-4xl mx-auto gap-3">
+                <div className="flex-1 flex items-center min-w-0">
+                  <span className="text-lg font-medium text-text-primary truncate">КомарСтоп</span>
+                </div>
+                <div className="flex-shrink-0">
+                  <BottomNav />
+                </div>
+                <div className="flex-1 flex items-center justify-end min-w-0">
+                  <LogoutButton />
+                </div>
+              </div>
+            </motion.header>
           )}
         </AnimatePresence>
       )}

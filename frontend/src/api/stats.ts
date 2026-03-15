@@ -23,5 +23,12 @@ export async function getStats(accessToken: string, refreshToken?: string | null
     err.status = res.status;
     throw err;
   }
-  return data.data;
+  const raw = data.data ?? data;
+  return {
+    daysFree: Number(raw.daysFree ?? raw.days_free ?? 0) || 0,
+    totalSurges: Number(raw.totalSurges ?? raw.total_surges ?? 0) || 0,
+    surgeSessionsByWeek: Array.isArray(raw.surgeSessionsByWeek) ? raw.surgeSessionsByWeek : raw.surge_sessions_by_week ?? [],
+    urgeRatings: Array.isArray(raw.urgeRatings) ? raw.urgeRatings : raw.urge_ratings ?? [],
+    averageUrgeRating: raw.averageUrgeRating != null ? Number(raw.averageUrgeRating) : raw.average_urge_rating != null ? Number(raw.average_urge_rating) : null,
+  } as StatsData;
 }

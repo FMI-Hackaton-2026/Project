@@ -3,12 +3,14 @@ import SurgeSession from '../models/surgeSession.js';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
+/** Days free from DB: from last_gambling_at (days since that date) or user.days_free */
 function getDaysFree(user) {
-  if (!user.last_gambling_at) {
-    return user.days_free != null ? user.days_free : 0;
+  if (!user) return 0;
+  if (user.last_gambling_at) {
+    const elapsed = Date.now() - new Date(user.last_gambling_at).getTime();
+    return Math.max(0, Math.floor(elapsed / MS_PER_DAY));
   }
-  const elapsed = Date.now() - new Date(user.last_gambling_at).getTime();
-  return Math.max(0, Math.floor(elapsed / MS_PER_DAY));
+  return user.days_free != null ? user.days_free : 0;
 }
 
 export const getStats = async (req, res) => {
