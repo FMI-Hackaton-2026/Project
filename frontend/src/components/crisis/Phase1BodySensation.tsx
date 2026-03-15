@@ -7,15 +7,19 @@ const AI_PROMPT =
 export function Phase1BodySensation({
   onComplete,
   onTextSubmit,
+  onBodySensation,
 }: {
   onComplete: () => void;
   onTextSubmit?: (text: string) => void;
+  onBodySensation?: (text: string) => void;
 }) {
   const [value, setValue] = useState('');
   const canAdvance = value.trim().length > 0;
 
   const handleContinue = () => {
-    onTextSubmit?.(value.trim());
+    const trimmed = value.trim();
+    onTextSubmit?.(trimmed);
+    onBodySensation?.(trimmed);
     onComplete();
   };
 

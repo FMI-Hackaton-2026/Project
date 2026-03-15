@@ -1,23 +1,35 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { useAppStore, SURGE_DURATION_MS } from '../../store/useAppStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { Phase1BodySensation } from './Phase1BodySensation';
 import { SensoryOverload } from './SensoryOverload';
 import { BreathingCircle } from './BreathingCircle';
 import { SocraticBubbles } from './SocraticBubbles';
 import { ReflectionScale } from './ReflectionScale';
 import { containsCrisisLanguage, CRISIS_RESOURCES } from './crisisMonitor';
+import { submitSurge } from '../../api/surge';
 
 type SurgePhase = 1 | 2 | 3 | 4 | 5;
 
+function is401(e: unknown): e is Error & { status?: number } {
+  return e instanceof Error && 'status' in e && (e as Error & { status?: number }).status === 401;
+}
+
 export function SurgeOverride() {
-  const { isSurgeActive, deactivateSurge, surgeStartedAt } = useAppStore();
+  const navigate = useNavigate();
+  const { isSurgeActive, deactivateSurge, surgeStartedAt, setSurgeSubmitted } = useAppStore();
+  const getAccessToken = useAuthStore((s) => s.getAccessToken);
+  const getRefreshToken = useAuthStore((s) => s.getRefreshToken);
+  const clearAuth = useAuthStore((s) => s.clearAuth);
   const [phase, setPhase] = useState<SurgePhase>(1);
   const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [surgePayload, setSurgePayload] = useState<{ bodySensation?: string; urgeRating?: number }>({});
 
   useEffect(() => {
     if (!isSurgeActive || !surgeStartedAt) return;
@@ -82,6 +94,7 @@ export function SurgeOverride() {
                 <Phase1BodySensation
                   onComplete={() => setPhase(2)}
                   onTextSubmit={checkCrisis}
+                  onBodySensation={(text) => setSurgePayload((p) => ({ ...p, bodySensation: text }))}
                 />
               </motion.div>
             )}
@@ -152,7 +165,8 @@ export function SurgeOverride() {
                 className="flex-1 flex flex-col min-h-0 overflow-auto"
               >
                 <ReflectionScale
-                  onComplete={() => {
+                  onComplete={(rating) => {
+                    setSurgePayload((p) => ({ ...p, urgeRating: rating }));
                     setShowComplete(true);
                   }}
                 />
@@ -176,7 +190,29 @@ export function SurgeOverride() {
                 </p>
                 <button
                   type="button"
-                  onClick={deactivateSurge}
+                  onClick={async () => {
+                    const accessToken = getAccessToken();
+                    const refreshToken = getRefreshToken();
+                    const durationMs = surgeStartedAt ? Date.now() - surgeStartedAt : undefined;
+                    if (accessToken || refreshToken) {
+                      try {
+                        await submitSurge(
+                          { ...surgePayload, durationMs },
+                          accessToken ?? '',
+                          refreshToken
+                        );
+                        setSurgeSubmitted();
+                      } catch (e) {
+                        if (is401(e)) {
+                          clearAuth();
+                          deactivateSurge();
+                          navigate('/login', { replace: true });
+                          return;
+                        }
+                      }
+                    }
+                    deactivateSurge();
+                  }}
                   className="px-8 py-4 rounded-xl bg-accent-teal text-navy-900 font-semibold hover:bg-teal-400 transition-colors"
                 >
                   Return to app

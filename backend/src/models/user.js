@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0
     },
+    last_gambling_at: {
+      type: Date,
+      default: null
+    },
     hasLogedForFirstTime: {
       type: Boolean,
       default: false

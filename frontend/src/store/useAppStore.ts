@@ -8,6 +8,7 @@ interface AppState {
   currentView: ViewState;
   isSurgeActive: boolean;
   surgeStartedAt: number | null;
+  lastSurgeSubmittedAt: number | null;
   
   // User Data
   userProfile: UserProfile;
@@ -20,6 +21,7 @@ interface AppState {
   setView: (view: ViewState) => void;
   triggerSurge: () => void;
   deactivateSurge: () => void;
+  setSurgeSubmitted: () => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
   addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void;
   setTyping: (isTyping: boolean) => void;
@@ -38,6 +40,7 @@ export const useAppStore = create<AppState>((set) => ({
   currentView: 'chat',
   isSurgeActive: false,
   surgeStartedAt: null,
+  lastSurgeSubmittedAt: null,
   userProfile: initialProfile,
   messages: [],
   isTyping: false,
@@ -45,6 +48,7 @@ export const useAppStore = create<AppState>((set) => ({
   setView: (view) => set({ currentView: view }),
   triggerSurge: () => set({ isSurgeActive: true, surgeStartedAt: Date.now() }),
   deactivateSurge: () => set({ isSurgeActive: false, surgeStartedAt: null }),
+  setSurgeSubmitted: () => set({ lastSurgeSubmittedAt: Date.now() }),
   updateProfile: (updates) => set((state) => ({
     userProfile: { ...state.userProfile, ...updates }
   })),
