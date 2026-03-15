@@ -45,6 +45,7 @@ export const extractProfileData = async (userId, transcript) => {
 }
 
 For 'entertainment_tools', use your knowledge to auto-generate 2 or 3 real-world apps/websites (with standard URLs like YouTube, Duolingo) that match the user's hobbies.
+Ensure all text values intended for the user, like tool descriptions, are in Bulgarian (Български език).
 Return ONLY valid JSON without Markdown wrappers or extra text.
 
 Transcript:

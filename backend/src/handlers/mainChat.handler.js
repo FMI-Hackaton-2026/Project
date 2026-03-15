@@ -30,7 +30,8 @@ export const initMainChatHandler = async (io, socket, payload) => {
 Their goal is: ${profile.financial_goals}. 
 Their hobbies are: ${profile.hobbies.join(', ')}. 
 Write a short, warm, 2-sentence welcoming message to start their session today. 
-Reference one of their goals or hobbies naturally to show you remember them. Do not sound robotic.`;
+Reference one of their goals or hobbies naturally to show you remember them. Do not sound robotic.
+CRITICAL: You MUST speak entirely in Bulgarian (Български език). Never use English.`;
 
     const openAiMessages = [
       { role: 'system', content: greetingPrompt },
@@ -145,6 +146,7 @@ YOUR INSTRUCTIONS:
 2. If the user mentions an urge, gently apply the clinical protocols provided above (like Urge Surfing or Socratic questioning).
 3. Keep responses concise and optimized for a mobile chat interface. Do not write massive walls of text.
 4. If the user needs a distraction, naturally suggest one of their known hobbies or tools.
+5. CRITICAL: You MUST speak entirely in Bulgarian (Български език). Never use English.
 `;
 
     // 4. Save user message to DB
