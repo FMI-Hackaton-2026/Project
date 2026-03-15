@@ -33,7 +33,7 @@ export function Onboarding() {
       setTimeout(() => {
         addMessage({
           sender: 'ai',
-          text: "Welcome to your space. I'm here whenever you need to talk, vent, or refocus."
+          text: "Добре дошли във вашето пространство. Тук съм, когато ви трябва разговор, издухване или префокусиране."
         });
       }, 3000);
     }
@@ -69,7 +69,7 @@ export function Onboarding() {
                     transition={{ duration: 0.8, ease: "easeOut" }}
                     className="text-2xl font-light text-text-primary leading-relaxed"
                   >
-                    Hello. I'm Coach. What should I call you?
+                    Здравейте. Аз съм Вашият треньор. Как да ви наричам?
                   </motion.div>
                 )}
                 {chatPhase >= 2 && (
@@ -79,7 +79,7 @@ export function Onboarding() {
                     transition={{ duration: 0.8, ease: "easeOut" }}
                     className="text-2xl font-light text-text-primary leading-relaxed"
                   >
-                    Nice to meet you. When you're at your best, what do you enjoy doing?
+                    Приятно ми е. Когато сте в добра форма, какво обичате да правите?
                   </motion.div>
                 )}
                 {chatPhase >= 3 && (
@@ -89,7 +89,7 @@ export function Onboarding() {
                     transition={{ duration: 0.8, ease: "easeOut" }}
                     className="text-2xl font-light text-text-primary leading-relaxed"
                   >
-                    And what is your primary financial goal right now?
+                    И каква е основната ви финансова цел в момента?
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -106,7 +106,7 @@ export function Onboarding() {
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Type your answer..."
+                placeholder="Напишете отговора си..."
                 className="w-full bg-transparent border-b-2 border-white/10 py-4 text-xl text-text-primary placeholder:text-text-muted/30 focus:outline-none focus:border-accent-teal transition-colors"
                 autoFocus
               />
@@ -142,7 +142,7 @@ export function Onboarding() {
               transition={{ delay: 0.5, duration: 1 }}
               className="text-text-muted tracking-widest uppercase text-sm font-medium"
             >
-              Tailoring your space...
+              Подготвяме вашето пространство...
             </motion.p>
           </motion.div>
         )}

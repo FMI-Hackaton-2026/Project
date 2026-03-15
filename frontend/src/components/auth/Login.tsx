@@ -28,7 +28,7 @@ export default function Login() {
       const result = await res.json();
 
       if (!res.ok || !result.success) {
-        setError(result?.data?.message || 'Login failed.');
+        setError(result?.data?.message || 'Грешка при влизане.');
         return;
       }
 
@@ -47,7 +47,7 @@ export default function Login() {
 
       navigate('/platform/chat');
     } catch {
-      setError('Server error. Please try again.');
+      setError('Грешка в сървъра. Опитайте отново.');
     } finally {
       setLoading(false);
     }
@@ -61,14 +61,14 @@ export default function Login() {
         className="w-full max-w-md space-y-8"
       >
         <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-white">Welcome Back</h1>
-          <p className="mt-2 text-text-secondary">Continue your journey to resilience</p>
+          <h1 className="text-4xl font-bold tracking-tight text-white">Добре дошли отново</h1>
+          <p className="mt-2 text-text-secondary">Продължете пътя си към устойчивост</p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1">Email</label>
+              <label className="block text-sm font-medium text-text-secondary mb-1">Имейл</label>
               <input
                 type="email"
                 required
@@ -79,7 +79,7 @@ export default function Login() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1">Password</label>
+              <label className="block text-sm font-medium text-text-secondary mb-1">Парола</label>
               <input
                 type="password"
                 required
@@ -102,14 +102,14 @@ export default function Login() {
             disabled={loading}
             className="w-full py-4 rounded-xl bg-accent-teal text-navy-900 font-bold text-lg hover:bg-teal-400 transition-colors shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {loading ? 'Signing In...' : 'Sign In'}
+            {loading ? 'Влизане...' : 'Вход'}
           </button>
         </form>
 
         <p className="text-center text-text-muted">
-          Don't have an account?{' '}
+          Нямате профил?{' '}
           <Link to="/register" className="text-accent-teal hover:underline">
-            Register
+            Регистрация
           </Link>
         </p>
       </motion.div>

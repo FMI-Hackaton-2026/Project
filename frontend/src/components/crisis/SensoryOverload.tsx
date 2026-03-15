@@ -3,11 +3,11 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Check } from 'lucide-react';
 
 const STEPS = [
-  { count: 5, label: 'things you can see', placeholder: 'I see...', sub: 'Type 5 distinct visual observations in your room.' },
-  { count: 4, label: 'things you can physically touch', placeholder: 'I feel (texture)...', sub: 'Touch 4 objects and type their textures.' },
-  { count: 3, label: 'things you can hear', placeholder: 'I hear...', sub: 'Name 3 sounds around you.' },
-  { count: 2, label: 'things you can smell', placeholder: 'I smell...', sub: 'Name 2 smells.' },
-  { count: 1, label: 'thing you can taste', placeholder: 'I taste...', sub: 'Name 1 taste (or imagine one).' },
+  { count: 5, label: 'неща, които виждате', placeholder: 'Виждам...', sub: 'Напишете 5 различни визуални наблюдения в стаята си.' },
+  { count: 4, label: 'неща, които можете да пипнете', placeholder: 'Усещам (текстура)...', sub: 'Пипнете 4 предмета и напишете текстурите им.' },
+  { count: 3, label: 'звуци, които чувате', placeholder: 'Чувам...', sub: 'Назовете 3 звука около вас.' },
+  { count: 2, label: 'миризми, които усещате', placeholder: 'Мириша...', sub: 'Назовете 2 миризми.' },
+  { count: 1, label: 'вкус, който усещате', placeholder: 'Вкусвам...', sub: 'Назовете 1 вкус (или си представете).' },
 ];
 
 export function SensoryOverload({
@@ -83,7 +83,7 @@ export function SensoryOverload({
             disabled={!allFilled}
             className="w-full py-4 rounded-xl bg-accent-teal text-navy-900 font-semibold disabled:opacity-40 disabled:pointer-events-none hover:bg-teal-400 transition-all flex items-center justify-center gap-2"
           >
-            {currentStep === STEPS.length - 1 ? 'Continue' : 'Next'}
+            {currentStep === STEPS.length - 1 ? 'Напред' : 'Следващо'}
             {allFilled && <Check className="w-5 h-5" />}
           </button>
         </motion.div>

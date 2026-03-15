@@ -15,9 +15,9 @@ export function containsCrisisLanguage(text: string): boolean {
 }
 
 export const CRISIS_RESOURCES = {
-  title: 'You’re not alone',
-  message: 'If you’re in crisis, please reach out to a professional or someone you trust.',
+  title: 'Не сте сами',
+  message: 'Ако сте в криза, моля обърнете се към специалист или човек, на когото се доверявате.',
   hotline: '988',
-  hotlineLabel: 'Suicide & Crisis Lifeline',
-  hotlineSub: 'Call or text 988',
+  hotlineLabel: 'Линия за кризи и самоубийства',
+  hotlineSub: 'Обадете се или пишете на 988',
 };

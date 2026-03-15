@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 
 const AI_PROMPT =
-  "I'm here. We are riding this wave together. Right now, what exactly are you feeling in your physical body? (e.g., chest tight, heart racing?)";
+  "Тук съм. Яздим тази вълна заедно. В момента какво точно чувствате в тялото си? (напр. стегнатост в гърдите, сърцебиене?)";
 
 export function Phase1BodySensation({
   onComplete,
@@ -43,12 +43,12 @@ export function Phase1BodySensation({
         className="space-y-4"
       >
         <label className="block text-sm font-medium text-text-muted sr-only">
-          Describe what you feel in your body
+          Опишете какво чувствате в тялото си
         </label>
         <textarea
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="e.g., chest tight, heart racing, fists clenched..."
+          placeholder="напр. стегнатост в гърдите, сърцебиене, свити юмруци..."
           rows={3}
           className="w-full bg-slate-800/60 border border-white/10 rounded-xl px-5 py-4 text-text-primary placeholder:text-text-muted/50 focus:outline-none focus:border-accent-teal/50 focus:ring-1 focus:ring-accent-teal/30 resize-none transition-all"
           autoFocus
@@ -59,7 +59,7 @@ export function Phase1BodySensation({
           disabled={!canAdvance}
           className="w-full py-4 rounded-xl bg-accent-teal text-navy-900 font-semibold disabled:opacity-40 disabled:pointer-events-none hover:bg-teal-400 transition-all"
         >
-          Continue
+          Напред
         </button>
       </motion.div>
     </div>

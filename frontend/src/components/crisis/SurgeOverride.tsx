@@ -74,7 +74,7 @@ export function SurgeOverride() {
             type="button"
             onClick={() => setShowExitConfirm(true)}
             className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-text-muted hover:text-text-primary transition-colors"
-            aria-label="Exit intervention"
+            aria-label="Изход от интервенцията"
           >
             <X className="w-5 h-5" />
           </button>
@@ -140,7 +140,7 @@ export function SurgeOverride() {
               >
                 <div className="flex-1 flex items-center justify-center px-6">
                   <p className="text-text-muted text-center text-lg max-w-sm">
-                    You’ve completed the breathing wave. One more step.
+                    Завършихте дишания цикъл. Още една стъпка.
                   </p>
                 </div>
                 <div className="p-6">
@@ -149,7 +149,7 @@ export function SurgeOverride() {
                     onClick={() => setPhase(5)}
                     className="w-full py-4 rounded-xl bg-accent-teal text-navy-900 font-semibold hover:bg-teal-400 transition-all"
                   >
-                    Rate your urge
+                    Оценете желанието си
                   </button>
                 </div>
               </motion.div>
@@ -183,10 +183,10 @@ export function SurgeOverride() {
                 className="flex-1 flex flex-col items-center justify-center px-6"
               >
                 <p className="text-xl font-light text-text-primary text-center mb-2">
-                  You did it.
+                  Успяхте.
                 </p>
                 <p className="text-text-muted text-center mb-8">
-                  The wave has passed. You can start again anytime.
+                  Вълната мина. Можете да започнете отново по всяко време.
                 </p>
                 <button
                   type="button"
@@ -215,7 +215,7 @@ export function SurgeOverride() {
                   }}
                   className="px-8 py-4 rounded-xl bg-accent-teal text-navy-900 font-semibold hover:bg-teal-400 transition-colors"
                 >
-                  Return to app
+                  Обратно в приложението
                 </button>
               </motion.div>
             )}
@@ -240,10 +240,10 @@ export function SurgeOverride() {
                 className="bg-slate-800 border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
               >
                 <h3 className="text-xl font-semibold text-text-primary mb-2">
-                  Exit intervention?
+                  Изход от интервенцията?
                 </h3>
                 <p className="text-text-secondary text-sm mb-6">
-                  The wave will pass—you can start again anytime by tapping SURGE.
+                  Вълната ще мине — можете да започнете отново по всяко време с SURGE.
                 </p>
                 <div className="flex gap-3">
                   <button
@@ -251,7 +251,7 @@ export function SurgeOverride() {
                     onClick={() => setShowExitConfirm(false)}
                     className="flex-1 py-3 rounded-xl bg-white/10 text-text-primary font-medium hover:bg-white/15 transition-colors"
                   >
-                    Cancel
+                    Отказ
                   </button>
                   <button
                     type="button"
@@ -261,7 +261,7 @@ export function SurgeOverride() {
                     }}
                     className="flex-1 py-3 rounded-xl bg-accent-teal text-navy-900 font-semibold hover:bg-teal-400 transition-colors"
                   >
-                    Exit
+                    Изход
                   </button>
                 </div>
               </motion.div>
@@ -306,7 +306,7 @@ export function SurgeOverride() {
                   onClick={() => setShowCrisisModal(false)}
                   className="mt-4 w-full py-2.5 rounded-xl bg-white/10 text-text-primary text-sm font-medium hover:bg-white/15 transition-colors"
                 >
-                  Close
+                  Затвори
                 </button>
               </motion.div>
             </motion.div>

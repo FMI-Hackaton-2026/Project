@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 
 const AI_PROMPT =
-  'You successfully surfed the hardest part of the wave. Rate the physical intensity of your urge right now from 0 to 10.';
+  'Успешно преминахте най-тежката част от вълната. Оценете от 0 до 10 физическата интензивност на желанието си в момента.';
 
 export function ReflectionScale({ onComplete }: { onComplete: (rating: number) => void }) {
   const [rating, setRating] = useState<number | null>(null);
@@ -31,8 +31,8 @@ export function ReflectionScale({ onComplete }: { onComplete: (rating: number) =
         className="space-y-6"
       >
         <div className="flex justify-between items-center gap-2">
-          <span className="text-text-muted text-sm font-medium">0 — No urge</span>
-          <span className="text-text-muted text-sm font-medium">10 — Peak urge</span>
+          <span className="text-text-muted text-sm font-medium">0 — Без желание</span>
+          <span className="text-text-muted text-sm font-medium">10 — Макс. желание</span>
         </div>
         <div className="flex gap-1 sm:gap-2 justify-between">
           {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
@@ -51,7 +51,7 @@ export function ReflectionScale({ onComplete }: { onComplete: (rating: number) =
           ))}
         </div>
         <p className="text-center text-text-muted text-sm">
-          {rating !== null ? `You chose ${rating}` : 'Tap a number'}
+          {rating !== null ? `Избрахте ${rating}` : 'Изберете число'}
         </p>
         <button
           type="button"
@@ -59,7 +59,7 @@ export function ReflectionScale({ onComplete }: { onComplete: (rating: number) =
           disabled={rating === null}
           className="w-full py-4 rounded-xl bg-accent-teal text-navy-900 font-semibold disabled:opacity-40 disabled:pointer-events-none hover:bg-teal-400 transition-all"
         >
-          Complete
+          Готово
         </button>
       </motion.div>
     </div>
