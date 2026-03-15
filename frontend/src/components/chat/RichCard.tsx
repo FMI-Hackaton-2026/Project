@@ -44,6 +44,11 @@ export function RichCard({ data }: RichCardProps) {
         </div>
         
         <button 
+          onClick={() => {
+            if (data.actionPayload) {
+              window.open(data.actionPayload, '_blank', 'noopener,noreferrer');
+            }
+          }}
           className="mt-5 w-full py-3 px-4 rounded-xl bg-bg-tertiary hover:bg-slate-700 transition-colors text-sm font-medium text-text-primary flex items-center justify-center gap-2"
         >
           {data.actionText}

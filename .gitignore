@@ -1,6 +1,10 @@
 # Byte-compiled / optimized / DLL files
 /rag_api_sal/__pycache__/
 /rag_api_sal/*.py[cod]
+/rag_api_sal/__pycache__/
+/rag_api_sal/*.pyc
+/rag_api_sal/*.pyo
+/rag_api_sal/*.pyd
 
 # C extensions
 /rag_api_sal/*.so

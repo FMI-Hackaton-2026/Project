@@ -21,7 +21,7 @@ export const streamAIResponse = async (messages, onChunk, onComplete) => {
       fullContent += content;
       onChunk(content);
     }
-    
+
     onComplete(fullContent);
     return fullContent;
   } catch (error) {

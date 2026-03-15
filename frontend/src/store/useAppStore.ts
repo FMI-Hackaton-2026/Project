@@ -24,6 +24,7 @@ interface AppState {
   setSurgeSubmitted: () => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
   addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void;
+  appendMessageChunk: (chunk: string) => void;
   setTyping: (isTyping: boolean) => void;
 }
 
@@ -55,5 +56,22 @@ export const useAppStore = create<AppState>((set) => ({
   addMessage: (msg) => set((state) => ({
     messages: [...state.messages, { ...msg, id: crypto.randomUUID(), timestamp: Date.now() }]
   })),
+  appendMessageChunk: (chunk) => set((state) => {
+    const messages = [...state.messages];
+    if (messages.length === 0) return state;
+    
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg.sender === 'ai') {
+      // Append strictly to existing AI string without rewriting entirely
+      lastMsg.text += chunk;
+      return { messages, isTyping: false };
+    } else {
+      // It's the very first chunk after a user string, so create new message
+      return { 
+        messages: [...state.messages, { id: crypto.randomUUID(), timestamp: Date.now(), sender: 'ai', text: chunk }],
+        isTyping: false 
+      };
+    }
+  }),
   setTyping: (isTyping) => set({ isTyping }),
 }));

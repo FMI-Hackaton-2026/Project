@@ -3,15 +3,64 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Send } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { RichCard } from './RichCard';
+import { getSocket } from '../../lib/socket';
+import { useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 
-export default function Chat() {
-  const { messages, isTyping, addMessage } = useAppStore();
+interface ChatProps {
+  mode?: 'onboarding' | 'main';
+}
+
+export default function Chat({ mode = 'main' }: ChatProps) {
+  const { messages, isTyping, addMessage, appendMessageChunk, setTyping } = useAppStore();
   const bottomRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const [showCinematic, setShowCinematic] = React.useState(false);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleChunk = (data: { text: string }) => {
+      if (data.text) {
+        appendMessageChunk(data.text);
+      }
+    };
+
+    const handleEnd = (data?: { onboarding_complete?: boolean; success?: boolean }) => {
+      setTyping(false);
+      
+      if (mode === 'onboarding' && data?.onboarding_complete) {
+        // Trigger 2.5s cinematic wait, then navigate
+        setShowCinematic(true);
+        setTimeout(() => {
+          navigate('/platform/chat', { replace: true });
+        }, 2500);
+      }
+    };
+
+    if (mode === 'onboarding') {
+      socket.on('AI_REPLY_CHUNK', handleChunk);
+      socket.on('AI_REPLY_END', handleEnd);
+    } else {
+      socket.on('MAIN_CHAT_CHUNK', handleChunk);
+      socket.on('MAIN_CHAT_END', handleEnd);
+
+      // On initial mount of main chat, trigger greeting
+      socket.emit('INIT_MAIN_CHAT');
+    }
+
+    return () => {
+      socket.off('AI_REPLY_CHUNK', handleChunk);
+      socket.off('AI_REPLY_END', handleEnd);
+      socket.off('MAIN_CHAT_CHUNK', handleChunk);
+      socket.off('MAIN_CHAT_END', handleEnd);
+    };
+  }, [mode, appendMessageChunk, setTyping, navigate]);
 
   const handleSend = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -23,23 +72,44 @@ export default function Chat() {
     addMessage({ sender: 'user', text });
     e.currentTarget.reset();
     
-    // Simulate AI response
-    useAppStore.getState().setTyping(true);
-    setTimeout(() => {
-      useAppStore.getState().setTyping(false);
-      addMessage({
-        sender: 'ai',
-        text: "Чувам ви. Нека отделим момент да се заземим. Как се чувствате в момента?",
-        richCard: {
-          type: 'exercise',
-          title: 'Съзнателно дишане',
-          description: '2-минутно упражнение за центриране на мислите.',
-          actionText: 'Започни упражнението',
-          thumbnailUrl: 'https://picsum.photos/seed/calm/400/200?blur=2'
-        }
-      });
-    }, 1500);
+    setTyping(true);
+    const socket = getSocket();
+    if (socket) {
+      if (mode === 'onboarding') {
+        socket.emit('SEND_MESSAGE', { message: text });
+      } else {
+        socket.emit('SEND_MAIN_MESSAGE', { message: text });
+      }
+    }
   };
+
+  if (showCinematic) {
+    return (
+      <div className="fixed inset-0 bg-bg-primary flex flex-col justify-center items-center overflow-hidden z-[100]">
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, 90, 180],
+            borderRadius: ["20%", "50%", "20%"]
+          }}
+          transition={{
+            duration: 2.5,
+            ease: "easeInOut",
+            times: [0, 0.5, 1]
+          }}
+          className="w-16 h-16 bg-accent-teal/20 border border-accent-teal/40 mb-8"
+        />
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 1 }}
+          className="text-text-muted tracking-widest uppercase text-sm font-medium"
+        >
+          Подготвяме вашето пространство...
+        </motion.p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen bg-bg-primary pt-safe pb-[90px]">
