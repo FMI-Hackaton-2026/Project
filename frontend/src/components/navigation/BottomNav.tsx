@@ -4,10 +4,8 @@ import { useAppStore } from '../../store/useAppStore';
 import { cn } from '../../lib/utils';
 
 export function BottomNav() {
-  const { triggerSurge, isSurgeActive } = useAppStore();
+  const { triggerSurge } = useAppStore();
   const location = useLocation();
-
-  if (isSurgeActive) return null;
 
   return (
     <motion.div 

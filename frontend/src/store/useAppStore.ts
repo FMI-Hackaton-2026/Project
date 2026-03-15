@@ -1,10 +1,13 @@
 import { create } from 'zustand';
 import { UserProfile, ViewState, Message } from '../types';
 
+const SURGE_DURATION_MS = 20 * 60 * 1000; // 20 minutes
+
 interface AppState {
   // Navigation & Core State
   currentView: ViewState;
   isSurgeActive: boolean;
+  surgeStartedAt: number | null;
   
   // User Data
   userProfile: UserProfile;
@@ -22,6 +25,8 @@ interface AppState {
   setTyping: (isTyping: boolean) => void;
 }
 
+export { SURGE_DURATION_MS };
+
 const initialProfile: UserProfile = {
   resilienceScore: 0,
   daysWithoutGambling: 0,
@@ -32,13 +37,14 @@ const initialProfile: UserProfile = {
 export const useAppStore = create<AppState>((set) => ({
   currentView: 'chat',
   isSurgeActive: false,
+  surgeStartedAt: null,
   userProfile: initialProfile,
   messages: [],
   isTyping: false,
   
   setView: (view) => set({ currentView: view }),
-  triggerSurge: () => set({ isSurgeActive: true }),
-  deactivateSurge: () => set({ isSurgeActive: false }),
+  triggerSurge: () => set({ isSurgeActive: true, surgeStartedAt: Date.now() }),
+  deactivateSurge: () => set({ isSurgeActive: false, surgeStartedAt: null }),
   updateProfile: (updates) => set((state) => ({
     userProfile: { ...state.userProfile, ...updates }
   })),

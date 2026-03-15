@@ -1,121 +1,281 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShieldAlert, X } from 'lucide-react';
-import { useAppStore } from '../../store/useAppStore';
+import { X } from 'lucide-react';
+import { useAppStore, SURGE_DURATION_MS } from '../../store/useAppStore';
+import { Phase1BodySensation } from './Phase1BodySensation';
+import { SensoryOverload } from './SensoryOverload';
 import { BreathingCircle } from './BreathingCircle';
-import { SomaticGrounding } from './SomaticGrounding';
+import { SocraticBubbles } from './SocraticBubbles';
+import { ReflectionScale } from './ReflectionScale';
+import { containsCrisisLanguage, CRISIS_RESOURCES } from './crisisMonitor';
+
+type SurgePhase = 1 | 2 | 3 | 4 | 5;
 
 export function SurgeOverride() {
-  const { isSurgeActive, deactivateSurge } = useAppStore();
-  const [phase, setPhase] = useState<'intro' | 'breathing' | 'grounding' | 'complete'>('intro');
+  const { isSurgeActive, deactivateSurge, surgeStartedAt } = useAppStore();
+  const [phase, setPhase] = useState<SurgePhase>(1);
+  const [showCrisisModal, setShowCrisisModal] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [showComplete, setShowComplete] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    if (!isSurgeActive || !surgeStartedAt) return;
+    const update = () => {
+      const elapsed = Date.now() - surgeStartedAt;
+      setProgress(Math.min(elapsed / SURGE_DURATION_MS, 1));
+    };
+    update();
+    const interval = setInterval(update, 500);
+    return () => clearInterval(interval);
+  }, [isSurgeActive, surgeStartedAt]);
+
+  const checkCrisis = useCallback((text: string) => {
+    if (containsCrisisLanguage(text)) setShowCrisisModal(true);
+  }, []);
 
   if (!isSurgeActive) return null;
 
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, scale: 1.05 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="fixed inset-0 z-50 bg-navy-900 flex flex-col overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="fixed inset-0 z-[100] bg-[#05080d] flex flex-col overflow-hidden"
       >
-        {/* Subtle background noise/gradient for focus */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-navy-800 to-navy-900 opacity-50" />
+        {/* Subtle top progress (20-min window, no countdown) */}
+        <div
+          className="absolute top-0 left-0 right-0 h-1 z-[110] bg-slate-800/80 overflow-hidden"
+          aria-hidden
+        >
+          <div
+            className="h-full bg-accent-teal/60 transition-[width] duration-[500ms] ease-linear"
+            style={{ width: `${progress * 100}%` }}
+          />
+        </div>
 
-        <header className="relative z-10 flex items-center justify-between px-6 py-6">
-          <div className="flex items-center gap-3 text-accent-teal">
-            <ShieldAlert className="w-6 h-6" />
-            <span className="text-sm font-medium tracking-widest uppercase">Lockdown Protocol</span>
-          </div>
-          <button 
-            onClick={deactivateSurge}
-            className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors group"
-            aria-label="Exit protocol"
+        {/* Close button with confirmation */}
+        <div className="absolute top-4 right-4 z-[110] pt-safe">
+          <button
+            type="button"
+            onClick={() => setShowExitConfirm(true)}
+            className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-text-muted hover:text-text-primary transition-colors"
+            aria-label="Exit intervention"
           >
-            <X className="w-5 h-5 text-text-muted group-hover:text-text-primary transition-colors" />
+            <X className="w-5 h-5" />
           </button>
-        </header>
+        </div>
 
-        <main className="relative z-10 flex-1 flex flex-col items-center justify-center">
+        <main className="relative flex-1 flex flex-col min-h-0 pt-14">
           <AnimatePresence mode="wait">
-            {phase === 'intro' && (
+            {phase === 1 && (
               <motion.div
-                key="intro"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="text-center px-8"
-              >
-                <h1 className="text-4xl font-light text-text-primary mb-6">
-                  You are safe.
-                </h1>
-                <p className="text-xl text-text-muted mb-12 max-w-sm mx-auto leading-relaxed">
-                  We are going to slow down time. Follow the circle.
-                </p>
-                <button
-                  onClick={() => setPhase('breathing')}
-                  className="px-8 py-4 rounded-full bg-accent-teal text-navy-900 font-semibold tracking-wide hover:bg-teal-400 transition-colors"
-                >
-                  Begin
-                </button>
-              </motion.div>
-            )}
-
-            {phase === 'breathing' && (
-              <motion.div
-                key="breathing"
+                key="phase1"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.6 }}
-                className="w-full h-full"
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                className="flex-1 flex flex-col min-h-0"
               >
-                <BreathingCircle onComplete={() => setPhase('grounding')} />
+                <Phase1BodySensation
+                  onComplete={() => setPhase(2)}
+                  onTextSubmit={checkCrisis}
+                />
               </motion.div>
             )}
 
-            {phase === 'grounding' && (
+            {phase === 2 && (
               <motion.div
-                key="grounding"
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="w-full h-full"
+                key="phase2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                className="flex-1 flex flex-col min-h-0 overflow-auto"
               >
-                <SomaticGrounding onComplete={() => setPhase('complete')} />
+                <SensoryOverload
+                  onComplete={() => setPhase(3)}
+                  onTextSubmit={checkCrisis}
+                />
               </motion.div>
             )}
 
-            {phase === 'complete' && (
+            {phase === 3 && (
+              <motion.div
+                key="phase3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute inset-0 flex flex-col"
+              >
+                <BreathingCircle onComplete={() => setPhase(4)} />
+                <SocraticBubbles />
+              </motion.div>
+            )}
+
+            {phase === 4 && (
+              <motion.div
+                key="phase4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                className="flex-1 flex flex-col min-h-0"
+              >
+                <div className="flex-1 flex items-center justify-center px-6">
+                  <p className="text-text-muted text-center text-lg max-w-sm">
+                    You’ve completed the breathing wave. One more step.
+                  </p>
+                </div>
+                <div className="p-6">
+                  <button
+                    type="button"
+                    onClick={() => setPhase(5)}
+                    className="w-full py-4 rounded-xl bg-accent-teal text-navy-900 font-semibold hover:bg-teal-400 transition-all"
+                  >
+                    Rate your urge
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {phase === 5 && !showComplete && (
+              <motion.div
+                key="phase5"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                className="flex-1 flex flex-col min-h-0 overflow-auto"
+              >
+                <ReflectionScale
+                  onComplete={() => {
+                    setShowComplete(true);
+                  }}
+                />
+              </motion.div>
+            )}
+
+            {phase === 5 && showComplete && (
               <motion.div
                 key="complete"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="text-center px-8"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                className="flex-1 flex flex-col items-center justify-center px-6"
               >
-                <div className="w-24 h-24 rounded-full bg-accent-teal/20 flex items-center justify-center mx-auto mb-8">
-                  <ShieldAlert className="w-10 h-10 text-accent-teal" />
-                </div>
-                <h2 className="text-3xl font-light text-text-primary mb-4">
-                  Protocol Complete
-                </h2>
-                <p className="text-lg text-text-muted mb-12 max-w-sm mx-auto leading-relaxed">
-                  The urge has passed. You are back in control.
+                <p className="text-xl font-light text-text-primary text-center mb-2">
+                  You did it.
+                </p>
+                <p className="text-text-muted text-center mb-8">
+                  The wave has passed. You can start again anytime.
                 </p>
                 <button
+                  type="button"
                   onClick={deactivateSurge}
-                  className="px-8 py-4 rounded-full bg-white/10 text-text-primary font-medium tracking-wide hover:bg-white/20 transition-colors"
+                  className="px-8 py-4 rounded-xl bg-accent-teal text-navy-900 font-semibold hover:bg-teal-400 transition-colors"
                 >
-                  Return to Stream
+                  Return to app
                 </button>
               </motion.div>
             )}
           </AnimatePresence>
         </main>
+
+        {/* Exit confirmation modal */}
+        <AnimatePresence>
+          {showExitConfirm && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-[120] bg-black/80 flex items-center justify-center p-6"
+              onClick={() => setShowExitConfirm(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-slate-800 border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+              >
+                <h3 className="text-xl font-semibold text-text-primary mb-2">
+                  Exit intervention?
+                </h3>
+                <p className="text-text-secondary text-sm mb-6">
+                  The wave will pass—you can start again anytime by tapping SURGE.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowExitConfirm(false)}
+                    className="flex-1 py-3 rounded-xl bg-white/10 text-text-primary font-medium hover:bg-white/15 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowExitConfirm(false);
+                      deactivateSurge();
+                    }}
+                    className="flex-1 py-3 rounded-xl bg-accent-teal text-navy-900 font-semibold hover:bg-teal-400 transition-colors"
+                  >
+                    Exit
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Crisis escalation modal */}
+        <AnimatePresence>
+          {showCrisisModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-[120] bg-black/80 flex items-center justify-center p-6"
+              onClick={() => setShowCrisisModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-slate-800 border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+              >
+                <h3 className="text-xl font-semibold text-text-primary mb-2">
+                  {CRISIS_RESOURCES.title}
+                </h3>
+                <p className="text-text-secondary text-sm mb-4">
+                  {CRISIS_RESOURCES.message}
+                </p>
+                <a
+                  href={`tel:${CRISIS_RESOURCES.hotline}`}
+                  className="block w-full py-3 rounded-xl bg-accent-teal text-navy-900 font-semibold text-center hover:bg-teal-400 transition-colors mb-2"
+                >
+                  {CRISIS_RESOURCES.hotlineLabel}
+                </a>
+                <p className="text-text-muted text-xs text-center">
+                  {CRISIS_RESOURCES.hotlineSub}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowCrisisModal(false)}
+                  className="mt-4 w-full py-2.5 rounded-xl bg-white/10 text-text-primary text-sm font-medium hover:bg-white/15 transition-colors"
+                >
+                  Close
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </AnimatePresence>
   );
