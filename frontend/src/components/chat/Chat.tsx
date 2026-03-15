@@ -42,7 +42,7 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-bg-primary pt-safe pb-[90px]">
+    <div className="flex flex-col h-screen bg-bg-primary pt-safe">
       {/* Header */}
       <header className="px-6 py-4 border-b border-white/5 bg-bg-primary/80 backdrop-blur-md sticky top-0 z-10">
         <h1 className="text-lg font-medium text-text-primary tracking-wide">Треньор</h1>
